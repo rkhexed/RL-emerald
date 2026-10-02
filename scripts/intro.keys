@@ -1,0 +1,17 @@
+# Button script from power-on to the first controllable moment (inside the truck).
+# Replayed by scripts/drive.py; emulation is deterministic, so the same keys give the same game.
+# Each line is one stage of the intro; "W1" after each stage matches the extra frame
+# drive.py ran after loading the stage's savestate when this was first recorded.
+W1500,START,W120,START,W120,A,W180, W1          # intro cutscene -> title -> NEW GAME / OPTION menu
+DOWN,A,W60,RIGHT*2,DOWN,RIGHT,W10, W1           # OPTION: battle scene OFF
+UP,RIGHT,DOWN*2,RIGHT,W10, W1                   # text speed FAST, battle style SET
+DOWN*4,A,W90, W1                                # CANCEL back to the menu
+UP,A,W240,A*14,W60, W1                          # NEW GAME, Birch starts talking
+A,W30,A,W30,A,W30,A,W30,A,W30,A,W200,A,W30,A,W30,A,W30,A,W30,A,W60, W1
+A,W40,A,W40,A,W40,A,W40,A,W40,A,W120,A,W40,A,W40, W1
+W90, W1                                         # "Are you a boy or a girl?"
+A,W60,A,W40,A,W40,A,W90, W1                     # BOY, into the naming screen (types "AA")
+B,B,DOWN*2,RIGHT*5,A,UP,A,W20, W1               # erase, type "RL"
+START,A,W90,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W300, W1
+A,W60,A,W60,A,W600, W1
+A,W60,A,W60,A,W60,A,W900                        # -> inside the truck (states/00_truck.state)

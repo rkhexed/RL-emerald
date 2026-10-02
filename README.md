@@ -1,13 +1,6 @@
 # RL-Emerald
 
-Reinforcement learning agents that play **Pokémon Emerald**, with a comparison
-against LLM-guided play.
-
-Side project, separate from the drone navigation research. Written 2026-10-01.
-Every number and claim below is checked against the cited paper, repository or
-GitHub API — guesses are marked as such.
-
----
+Reinforcement learning agents that play **Pokémon Emerald**, not an important feature but maybe with a side comparison with LLM based agents or a hybrid llm - jev agent setup.
 
 ## 1. The goal
 
@@ -15,6 +8,7 @@ Train an agent to progress through Pokémon Emerald, then compare three families
 on equal terms:
 
 1. **Pure RL** — PPO over emulator frames, in the style of PokemonRedExperiments.
+OPtional: MAIN FOCUS IS PURE RL with maybe some deterministic rules added on top
 2. **LLM-guided** — a frontier model driving the game through a tool harness.
 3. **Hybrid** — an LLM proposing subgoals, RL executing them.
 

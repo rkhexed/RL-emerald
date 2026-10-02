@@ -1,0 +1,21 @@
+# emulator ROMs are never committed -- supply your own from your cartridge
+*.gba
+*.gbc
+*.sav
+*.state
+
+# training outputs
+runs/
+videos/
+*.mp4
+*.gif
+
+# python
+.venv/
+__pycache__/
+*.py[cod]
+
+# editor and OS
+.vscode/
+.idea/
+.DS_Store

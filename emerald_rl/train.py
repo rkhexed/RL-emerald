@@ -33,8 +33,8 @@ class StatsCallback(BaseCallback):
         return True
 
 
-def make_env(i, run_dir, max_steps, state):
-    return lambda: EmeraldEnv(init_state=state, max_steps=max_steps, log_dir=run_dir / "logs", env_id=i)
+def make_env(i, run_dir, max_steps, state, weights):
+    return lambda: EmeraldEnv(init_state=state, max_steps=max_steps, weights=weights, log_dir=run_dir / "logs", env_id=i)
 
 
 def snapshot(run_dir, args):
@@ -59,12 +59,13 @@ def main():
     p.add_argument("--episode", type=int, default=20_480, help="steps before an env resets to the start state")
     p.add_argument("--rollout", type=int, default=2048, help="steps per env between PPO updates")
     p.add_argument("--state", default="states/01_mudkip.state", help="start state (copied into the run)")
+    p.add_argument("--weights", type=json.loads, default={}, help='reward weight overrides, e.g. \'{"stuck": 0.01}\'')
     p.add_argument("--resume")
     a = p.parse_args()
 
     run_dir = Path("runs") / a.name
     state = snapshot(run_dir, a)
-    env = SubprocVecEnv([make_env(i, run_dir, a.episode, state) for i in range(a.envs)])
+    env = SubprocVecEnv([make_env(i, run_dir, a.episode, state, a.weights) for i in range(a.envs)])
     if a.resume:
         model = PPO.load(a.resume, env=env, tensorboard_log=str(run_dir / "tensorboard"))
     else:

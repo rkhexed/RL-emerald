@@ -8,6 +8,9 @@ Writes runs/<name>/: checkpoints, tensorboard/, logs/ (per-step map, x, y, actio
 """
 
 import argparse
+import json
+import shutil
+import subprocess
 from pathlib import Path
 
 import numpy as np
@@ -30,8 +33,22 @@ class StatsCallback(BaseCallback):
         return True
 
 
-def make_env(i, run_dir, max_steps):
-    return lambda: EmeraldEnv(max_steps=max_steps, log_dir=run_dir / "logs", env_id=i)
+def make_env(i, run_dir, max_steps, state):
+    return lambda: EmeraldEnv(init_state=state, max_steps=max_steps, log_dir=run_dir / "logs", env_id=i)
+
+
+def snapshot(run_dir, args):
+    """Everything a replay needs to reproduce this run exactly: its own copy of the start state
+    (states/ gets rebuilt) and the code version and settings."""
+    run_dir.mkdir(parents=True, exist_ok=True)
+    state = run_dir / "start.state"
+    if not state.exists():
+        shutil.copy(args.state, state)
+    git = lambda *c: subprocess.run(["git", *c], capture_output=True, text=True).stdout.strip()
+    info = {"args": vars(args), "commit": git("rev-parse", "HEAD"), "dirty": bool(git("status", "--porcelain", "emerald_rl"))}
+    with open(run_dir / "run.json", "a") as f:  # appended on every --resume
+        f.write(json.dumps(info) + "\n")
+    return state
 
 
 def main():
@@ -41,11 +58,13 @@ def main():
     p.add_argument("--steps", type=int, default=10_000_000, help="total env steps")
     p.add_argument("--episode", type=int, default=20_480, help="steps before an env resets to the start state")
     p.add_argument("--rollout", type=int, default=2048, help="steps per env between PPO updates")
+    p.add_argument("--state", default="states/01_mudkip.state", help="start state (copied into the run)")
     p.add_argument("--resume")
     a = p.parse_args()
 
     run_dir = Path("runs") / a.name
-    env = SubprocVecEnv([make_env(i, run_dir, a.episode) for i in range(a.envs)])
+    state = snapshot(run_dir, a)
+    env = SubprocVecEnv([make_env(i, run_dir, a.episode, state) for i in range(a.envs)])
     if a.resume:
         model = PPO.load(a.resume, env=env, tensorboard_log=str(run_dir / "tensorboard"))
     else:

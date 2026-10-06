@@ -846,6 +846,32 @@ python -m emerald_rl.mapviz world                          # the whole stitched 
 Indoor maps are drawn at their door, so a lot of time inside the lab shows
 up as one hot tile on the lab's door.
 
+### What we keep from every run
+
+Video of everything is impossible (100M steps × 24 frames = 2.4 billion
+frames), so **the button log is the recording**. Because the emulator is
+deterministic, any game can be re-rendered in full colour later.
+
+| file in `runs/<name>/` | contents | size at 100M steps |
+|---|---|---|
+| `logs/envNNN.bin` | map, x, y, button for every step of every game (7 bytes) | ~700 MB |
+| `logs/envNNN.episodes.csv` | step where each episode began, and its start state | KB |
+| `start.state` | the run's own copy of its start state | 388 KB |
+| `run.json` | settings and git commit (one line per start or resume) | KB |
+| `ckpt_*.zip` | network weights every 10 updates, 15 MB each | ~4.6 GB |
+| `tensorboard/` | every graph | MB |
+
+A replay reproduces a game only with the **same start state and the same env
+code**, which is why each run keeps its own `start.state` (the one in `states/`
+gets rebuilt, e.g. after the rename to RLhexed) and records its commit. To
+replay an old run after the env has changed: `git worktree add ../old <commit>`
+and run `replay.py` from there.
+
+Not done yet, and not needed until disk or risk says so: pruning old
+checkpoints (keep every 10th, plus milestones and the final one), and backups
+off the VM (`rsync` to a local machine is free; Google Drive's free 15 GB via
+`rclone` would hold several runs' logs).
+
 ### `tests/test_env.py`
 
 `python tests/test_env.py` checks: RAM reads agree with pygba's full decoder,

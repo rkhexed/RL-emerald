@@ -1,0 +1,33 @@
+# Button script from states/00_truck.state to standing in Birch's lab with Mudkip (states/01_mudkip.state).
+# Recorded by hand; "W1" reproduces the frame drive.py runs after loading each stage's savestate.
+# Things an agent would trip on are noted: turning costs a press, A re-talks to NPCs, YES/NO defaults.
+W300,RIGHT*4,W200,A,W40,A,W40,A,W40,A,W200          # out of the truck, Mom
+W1, A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40
+W1, A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40    # Mom: "your room is upstairs"
+W1, UP*8                                                # stairs (8,2) -> 2F
+W1, LEFT*2,UP, W1, LEFT,UP, W1, LEFT,LEFT,UP           # to the clock at (5,1) (turns eat presses)
+W1, A,W40,A,W40,A,W40,A,W40,UP,A,W60                   # set clock; "correct time?" defaults to NO, so UP
+W1, A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40
+W1, RIGHT*3,UP*2,W60, W1, LEFT,LEFT,UP,UP,W90          # downstairs
+W1, A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40   # TV scene
+W1, RIGHT*5, W1, DOWN*6                                 # out the door
+W1, W30,DOWN,RIGHT*10,UP*2,W90                          # into May's house (14,8)
+W1, A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40
+W1, A,W40,A,W40,A,W40,W60                               # extra A re-talks to May's mom...
+W1, B,W30,B,W30,B,W30,B,W30,B,W30,B,W30,B,W30,B,W30     # ...B closes text without re-talking
+W1, UP*8                                                # stairs (2,2) -> 2F
+W1, W30,DOWN*4,RIGHT*4, W1, UP,UP,RIGHT                 # face the Poke Ball at (5,4): May walks in
+W1, A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40
+W1, B,W40,B,W40,B,W40,B,W40,B,W40,B,W40,B,W40,B,W40
+W1, LEFT*4,UP*4,W90, W1, DOWN*8                         # downstairs and out
+W1, LEFT*4, W1, LEFT*3, W1, UP*12, W1, RIGHT*3,UP,UP   # north exit, girl at (10,1)
+W1, B,W40,B,W40,B,W40,B,W40,B,W40,B,W40,B,W40,B,W40,B,W40,B,W40,B,W40,B,W40
+W1, UP,UP,W60, W1, UP,W60                               # Route 101: Birch is chased
+W1, B,W60,B,W60,B,W60,B,W60,B,W60,B,W60,B,W60,B,W60,B,W60,B,W60,B,W60,B,W60
+W1, LEFT*5,UP                                           # x=6 is "don't leave me": pushed back to (7,15)
+W1, A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40
+W1, UP, W1, A,W60,RIGHT,W30                             # open the bag; cursor starts on Torchic, RIGHT = Mudkip
+W1, A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60,A,W60   # pick, battle Zigzagoon with Tackle (36 A: damage rolls vary with the RNG; ~16 lines of slack before the nickname YES/NO)
+W1, B,W60,B,W60,B,W60,B,W60,B,W60,B,W60,B,W60,B,W60,B,W60,B,W60,B,W60,B,W60,B,W60,B,W60,B,W60,B,W60,B,W60,B,W60,B,W60,B,W60,B,W60,B,W60,B,W60,B,W60   # to the lab; B = NO nickname
+W1, A,W60                                               # "go see MAY?" YES
+W1, B,W60,B,W60,B,W60,B,W60,B,W60,B,W60,B,W60,B,W60     # free in the lab

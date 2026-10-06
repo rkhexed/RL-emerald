@@ -11,7 +11,7 @@ A,W30,A,W30,A,W30,A,W30,A,W30,A,W200,A,W30,A,W30,A,W30,A,W30,A,W60, W1
 A,W40,A,W40,A,W40,A,W40,A,W40,A,W120,A,W40,A,W40, W1
 W90, W1                                         # "Are you a boy or a girl?"
 A,W60,A,W40,A,W40,A,W90, W1                     # BOY, into the naming screen (types "AA")
-B,B,DOWN*2,RIGHT*5,A,UP,A,W20, W1               # erase, type "RL"
+B,B,DOWN*2,RIGHT*5,A,UP,A,SELECT,W20,LEFT*4,A,UP,RIGHT*3,A,DOWN*3,A,UP*3,A,LEFT,A,W20, W1   # erase, type "RL", SELECT = lowercase, "hexed" (7 chars: cursor jumps to OK)
 START,A,W90,A,W40,A,W40,A,W40,A,W40,A,W40,A,W40,A,W300, W1
 A,W60,A,W60,A,W600, W1
 A,W60,A,W60,A,W60,A,W900                        # -> inside the truck (states/00_truck.state)

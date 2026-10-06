@@ -14,7 +14,7 @@ Sources for everything here are in
 2. [Reinforcement learning in the smallest number of ideas](#2-reinforcement-learning-in-the-smallest-number-of-ideas)
 3. [Advantage and GAE](#3-advantage-and-gae)
 4. [PPO itself](#4-ppo-itself)
-5. [The network](#5-the-network)
+5. [The network](#5-the-network) (with 5a: choosing the buttons, 5b: choosing the picture)
 6. [The emulator: how a GBA becomes a gym environment](#6-the-emulator-how-a-gba-becomes-a-gym-environment)
 7. [Reading Emerald's memory](#7-reading-emeralds-memory)
 8. [Reward design, and how agents cheat](#8-reward-design-and-how-agents-cheat)
@@ -226,6 +226,127 @@ to 48.
 > 72×80 view, the visited crop, the stats vector). PWhiddy's video does this,
 > and it's memorable.
 
+### 5a. Choosing the buttons (the action space)
+
+The **action space** is the menu the agent picks from at every step. pygba
+offers every combination of one arrow (or none) and one button (or none):
+5 × 7 = **35 actions**. Red offers **7**: the four arrows, A, B and START.
+
+Tested on the real game (inside the truck, 2026-10-03):
+
+| button | what it does in the overworld early on |
+|---|---|
+| arrows | walk (or only turn, if facing another way) |
+| A | talk, read signs, confirm |
+| B | cancel; later, hold to run |
+| START | opens BAG / RL / SAVE / OPTION / EXIT. A detour, and OPTION can undo our fast-text setting |
+| SELECT | shows "An item in the BAG can be registered to SELECT…", a text box that costs extra presses to clear |
+| L, R | **nothing** |
+| arrow + button combos | near-duplicates of the single buttons |
+| nothing pressed | wastes 24 frames |
+
+**Why more actions makes learning harder:**
+
+1. **Random exploration gets diluted.** A fresh network picks roughly uniformly
+   at random. Leaving a building might take 5 particular presses in a row. With
+   7 actions the chance of hitting them by luck is 1 in 7⁵ = 16,807. With 35
+   it's 1 in 35⁵ = 52.5 million, **3,125× rarer**. Early learning depends on
+   these lucky accidents happening often enough to be rewarded.
+2. **The same lesson has to be learned several times.** "Up" and "Up+L" do
+   the same thing, but to the network they're unrelated outputs. Whatever it
+   learns about one doesn't carry over to the other.
+3. **Entropy is spread thinner.** The entropy bonus (section 4) keeps the
+   policy random. With 35 actions, most of that randomness goes on buttons that
+   do nothing. Maximum entropy is ln 35 = 3.56 against ln 7 = 1.95.
+
+**Our choice: 7 actions, UP, DOWN, LEFT, RIGHT, A, B, START**, the same as Red.
+START stays because the menu is a real part of the game (bag, party, HMs
+later), and the agent should learn *when* it's worth opening instead of having
+it taken away. L and R do nothing, and SELECT is only a shortcut to an item
+you can already use via START → BAG, so dropping those three removes no
+ability.
+
+**Discouraging harm without rules.** Some menu entries can cause real harm.
+OPTION can switch text back to slow or battle animations back on, which
+wastes time for the rest of the episode. Instead of blocking the menu, we
+use the reward, with three design decisions:
+
+1. **Penalise the outcome, not the button.** If pressing START (or entering
+   OPTION) were punished, the simplest thing for the network to learn is
+   "never open the menu", which is the opposite of what we want. The harm is
+   the *settings changing*, and we can read that directly: the settings are one
+   16-bit value at `SaveBlock2 + 0x14` (text speed in bits 0–2, battle style
+   bit 9, animations-off bit 10). Verified on our savestates: `0x0001`
+   (MID/SHIFT/ON) before setup and `0x0602` (FAST/SET/OFF) after.
+2. **Keep it moderate.** Huge penalties backfire. Early random play will hit
+   them often, so they dominate learning, make the agent avoid everything near
+   them, and make the value network's targets swing wildly. Size a penalty to
+   the harm it stands for: slow text costs time, so a few tiles' worth of
+   exploration reward.
+3. **Refund it when undone (potential-based).** −P when the settings move away
+   from ours, +P when they're restored. Breaking and fixing costs nothing,
+   leaving them broken costs P, and the agent can learn to repair them. This
+   is the Ng et al. shaping form from section 8, so it doesn't change which
+   strategy is best overall.
+
+Wasted time is a cost on its own: steps spent in menus aren't spent
+exploring, so the agent learns menus pay off only when they lead somewhere.
+That's how Red's agents handled START with no penalty at all.
+
+| menu entry (early game) | possible harm | handling |
+|---|---|---|
+| OPTION | slower text / animations back on | refundable penalty |
+| SAVE | none (we use savestates) | none; just costs time |
+| BAG → TOSS | loses Potions / Poké Balls | later, when items matter |
+| POKéMON → reorder | could help | none |
+
+### 5b. Choosing the picture (the observation)
+
+The GBA screen is 240×160 pixels in colour (3 numbers per pixel: red, green,
+blue). Red's agents see a much smaller version. The comparison below is from
+our Littleroot savestate (`docs/images/observation_resolutions.png`):
+
+![observation resolutions](docs/images/observation_resolutions.png)
+
+| observation | numbers per frame | what's still visible |
+|---|---|---|
+| full colour, 240×160 (pygba) | 115,200 | everything |
+| grayscale, 240×160 | 38,400 | everything except colour |
+| **grayscale, halved, 120×80** (Red-style) | **9,600** | doors, signs, trees, both characters, the truck |
+| grayscale, quartered, 60×40 | 2,400 | rough shapes; the player is a blob, the sign is gone |
+
+**Why it matters:**
+
+1. **Memory.** PPO keeps every observation from a rollout until the update.
+   SB3 stores them as bytes, one per number. At Red V2's buffer size (163,840
+   steps):
+   - full colour: 163,840 × 115,200 = **17.6 GiB**, over half the VM's 31 GB
+   - halved grayscale with 3 frames stacked: **4.4 GiB**
+   - halved grayscale, one frame (if memory comes from an LSTM instead): **1.5 GiB**
+2. **Compute.** The network's first layer does work for every input number.
+   Going from 115,200 to 9,600 numbers makes it about **12× cheaper**, and we
+   train on CPUs, which compete with the emulators for the same cores.
+3. **Learning.** A smaller input has fewer irrelevant details to learn to
+   ignore. A GBA tile is 16 pixels across, so halving keeps each tile 8
+   pixels wide, still recognisable. Quartering to 4 pixels starts to merge
+   things that matter.
+
+**What grayscale loses:** in this frame, 68 distinct colours become 58 gray
+levels, so a few different colours turn into the same gray. That's fine here,
+but some Emerald areas use colour to separate things (water, tall grass, cave
+floors). **We'll check it on Route 101's tall grass** before committing, and
+fall back to colour or a third-resolution if needed.
+
+**The screen isn't the whole observation.** Like Red, we also give the network
+facts read from RAM, which are cheap and exact: a crop of the tiles it has
+already visited around the player, party HP, levels, badges and milestone bits.
+The settings value from 5a goes in too, so the network can *see* that the
+settings are wrong, rather than only being penalised for it.
+
+**Our choice:** 120×80 grayscale, 3 stacked frames for the first version
+(simple, works in plain SB3 PPO, same as Red), plus the RAM facts. We'll move
+to an LSTM once the pipeline works.
+
 ---
 
 ## 6. The emulator: how a GBA becomes a gym environment
@@ -253,6 +374,22 @@ ones make menus sluggish.
 of about 388 KiB. On our VM, saving takes about 14 µs and loading about 17 µs.
 Every episode starts from a savestate rather than the title screen, and swarming
 (section 9) relies on them being cheap.
+
+**Our starting savestate is `states/01_mudkip.state`**: standing in Birch's lab
+with a level 5 Mudkip, like Red's agents start with their starter. Everything
+before that point is fixed dialogue (Mom, the clock, May's house, the rescue
+on Route 101), so the agent would learn nothing from it and would have to
+repeat it every episode. It's rebuilt from power-on by replaying
+`scripts/intro.keys` and then `scripts/starter.keys`.
+
+**The cartridge clock (a determinism trap).** Emerald cartridges have a
+real-time clock chip, and by default mGBA feeds it this machine's real date.
+Replaying the intro four days after recording it changed 11 bytes of game
+RAM. Nothing visible changed, but runs then depend on *when* they ran.
+`drive.py`'s `pin_clock` switches mGBA to `RTC_FAKE_EPOCH`: the clock starts at
+2026-01-01 12:00 and advances with *emulated* frames. Now two runs from
+power-on give byte-identical savestates. The environment must call the same
+function.
 
 **Measured speed on our VM** (`scripts/bench_emulator.py`, random buttons, 24
 frames per decision):
@@ -453,6 +590,28 @@ and the mean shows what the policy reliably does.
 
 ## 11. What to look for in the replays
 
+**Traps found by playing the opening by hand** (recorded in `scripts/starter.keys`).
+Expect the agent to hit every one:
+
+- **Turning costs a press.** Tapping a new direction only turns the player, so
+  "LEFT, UP" from facing up moves nowhere.
+- **A re-starts conversations.** Pressing A after a dialogue ends talks to the
+  same NPC again, a loop. B advances text without starting a conversation.
+- **YES/NO defaults differ.** The clock's "Is this the correct time?" defaults
+  to NO, so A-mashing loops forever. Birch's "go see MAY?" defaults to YES.
+- **Invisible push-back tiles.** On Route 101, walking west onto x = 6 makes
+  Birch shout "Don't leave me!" and pushes you back.
+- **Cursor defaults decide things.** Birch's bag opens on Torchic, so
+  A-mashing picks Torchic.
+- **Small changes ripple through the RNG.** Renaming the player from "RL" to
+  "RLhexed" changed the game's random numbers, so the Zigzagoon fight took more
+  turns and the fixed button script ran out mid-battle. Recorded button
+  scripts are only exact for exactly the same inputs. The agent never has
+  this problem, because it looks at the screen before every press.
+- **Flags go down as well as up.** Getting Mudkip took script flags from 187
+  to 186, a temporary flag being cleared. pygba's XOR-based reward pays for
+  that change.
+
 Watch the grid video of all envs at once, sped up. Ask:
 
 - **Where do the dots pile up?** That's the current wall: a ledge, a door it
@@ -487,6 +646,25 @@ All of these were confirmed by reading the code in `~/refs/`.
 | **Live shared map** | `StreamWrapper` sends batches of [x, y, map] every 300 steps over a websocket, and `pokerl-map-viz` (MIT, PIXI.js page + Node relay in `ws-server/`) draws them | self-host both on the VM, with a Hoenn background and our map_data.json |
 | **Exploration heatmap** | the 48×48 visited crops and the full explore map logged as TensorBoard images | same, on the Hoenn grid |
 | **Training curves** | TensorBoard, optional wandb | TensorBoard (free, local); wandb's free tier is optional |
+
+**Full quality without slowing training.** The emulator always draws the full
+240×160 colour frame. The grayscale half-size picture is a copy made only for
+the network. Presentable footage comes from two sources:
+
+1. **A few games record live** (puffer records 10 by default), straight from
+   the full-colour frame.
+2. **Any game can be re-rendered later from its button log.** The emulator is
+   deterministic (proven by progress video #1, which was rendered by replaying
+   `scripts/intro.keys`), so each game only logs its starting savestate, one
+   byte per button pressed (~100 MB per 100M steps), and the step of any
+   savestate load (swarming). Later we replay whichever game turned out
+   interesting, in full colour, at any size.
+
+For YouTube: upscale by **whole numbers with nearest-neighbour** (crisp pixel
+blocks, not blur) and upload at 1440p or 4K (240×160 × 6 = 1440×960,
+× 9 = 2160×1440). YouTube gives higher-resolution uploads more bitrate. The
+network's own view can't be restored to full quality (that detail was
+discarded), so the "what the AI sees" panel looks rough on purpose.
 
 **Hoenn background image:** the decomp ships the tileset graphics and every
 map's block layout, so a full-resolution Hoenn image can be rendered from it
@@ -555,7 +733,7 @@ Ordered as a path. Everything here is free.
   Mr. Briney loop. Built Hoenn global coordinates from the decomp.
 - **2026-10-02 (later):** ROM verified: SHA-1 matches pokeemerald's reference.
   Played the intro by script (options set to text FAST, battle scene OFF,
-  battle style SET; player named "RL") and saved `states/00_truck.state`, the
+  battle style SET; player named "RL", later "RLhexed") and saved `states/00_truck.state`, the
   equivalent of Red's `init.state`. Real Emerald speed: 96 decisions/s per
   process, 900 total at 16 processes (~31 h per 100M steps). RAM readers for
   map, position and flags checked against the screen.
@@ -565,3 +743,13 @@ Ordered as a path. Everything here is free.
   `scripts/intro.keys`. Replaying them from power-on reproduces
   `states/00_truck.state` exactly (same map, position and flags), which shows
   the emulator is **deterministic**: same inputs, same game, every time.
+- **2026-10-06:** New starting point `states/01_mudkip.state`: the opening
+  played by hand to Birch handing over Mudkip, saved as `scripts/starter.keys`.
+  The decomp's map files gave exact coordinates for every door, stair and
+  trigger, and confirmed `SaveBlock1.pos` uses the decomp's map coordinates.
+  The party reader decodes the encrypted Pokémon correctly (TORCHIC, then
+  MUDKIP, Lv 5). Found and fixed the cartridge-clock determinism trap
+  (section 6). Progress video #2:
+  `videos/progress/2026-10-06_02_truck_to_mudkip.mp4` (22 s, 15× speed).
+  Later the same day: player renamed to "RLhexed" (`intro.keys`, lowercase via
+  SELECT). Both savestates were rebuilt, and video #2 re-rendered (23 s).

@@ -23,18 +23,13 @@ import numpy as np
 import mgba.core
 import mgba.image
 import mgba.log
-from mgba._pylib import ffi, lib
+from mgba._pylib import ffi
 from pygba import PyGBA
 from pygba.game_wrappers.pokemon_emerald import get_game_state
 
+from emerald_rl.env import pin_clock
+
 KEYS = {"A": 0, "B": 1, "SELECT": 2, "START": 3, "RIGHT": 4, "LEFT": 5, "UP": 6, "DOWN": 7, "R": 8, "L": 9}
-
-
-def pin_clock(core, epoch_ms=1_767_268_800_000):  # 2026-01-01 12:00 UTC
-    """Emerald reads the cartridge clock. By default mGBA feeds it the host's date, so replays
-    differ by day. FAKE_EPOCH starts it at a fixed date and advances it with emulated frames."""
-    core._core.rtc.override = lib.RTC_FAKE_EPOCH
-    core._core.rtc.value = epoch_ms
 
 
 def run(core, spec, on_frame=lambda: None):

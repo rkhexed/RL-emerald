@@ -23,7 +23,8 @@ Sources for everything here are in
 11. [What to look for in the replays](#11-what-to-look-for-in-the-replays)
 12. [How the visuals are made](#12-how-the-visuals-are-made)
 13. [Reading and watching list](#13-reading-and-watching-list)
-14. [Log](#14-log)
+14. [Our code, file by file](#14-our-code-file-by-file)
+15. [Log](#15-log)
 
 ---
 
@@ -724,7 +725,92 @@ Ordered as a path. Everything here is free.
 
 ---
 
-## 14. Log
+## 14. Our code, file by file
+
+### `emerald_rl/env.py`: the environment
+
+Everything sections 5–9 decided, as code. Each step:
+
+1. **Press.** One of 7 buttons (↑ ↓ ← → A B START) held 8 frames, released for 16.
+2. **Read RAM** (`read()`): map bank and number, x, y, flags, party levels and
+   HP, badges, towns, options. Uses a **zero-copy view** of the GBA's memory:
+   numpy looks straight at mGBA's RAM, so reading costs microseconds and is
+   always current. pygba copied whole memory regions on every frame instead.
+   Level and HP sit *after* the encrypted part of each Pokémon (byte 84 and
+   86 of the 100-byte struct), so no decryption is needed.
+3. **Score** (`_scores()`): each term is a score of the current state, and
+   the reward is the change in their sum since the last step:
+
+   | term | score | weight |
+   |---|---|---|
+   | event | most flags ever set this episode, minus flags set at start | 1.0 per flag |
+   | explore | unique (bank, num, x, y) tiles stood on | 0.02 per tile |
+   | level | best party level gain (full to +15, then ¼) | 0.5 per level |
+   | badge | badges gained | 5 each |
+   | town | "visited town" flags gained | 2 each |
+   | options | −1 while options differ from the start (refunded when fixed) | 0.1 |
+   | stuck | −1 per step on a tile visited 600+ times | 0.025 |
+
+   Because event and level use "best so far", the score can't be pumped by
+   doing the same thing twice (`tests/test_env.py` checks the event score never
+   goes down). The weights are starting guesses, and runs will tell us how to
+   tune them.
+4. **Observe** (`_obs()`): `screen` is 80×120×4: the last 3 grayscale frames
+   plus a 4th channel marking tiles walked on this episode, lined up with the
+   screen (the player stands on screen tile row 5, column 7, checked by
+   overlaying the mask on a frame). `stats` is 22 numbers: levels, HP
+   fractions, badges, "options OK", party size.
+5. **Log** (`_log_step()`): 7 bytes per step (bank, num, x, y, action) to
+   `runs/<name>/logs/envNNN.bin`, plus where each episode started. The map
+   visuals and full-quality replays are built from these.
+
+An episode is `max_steps` steps (default 20,480); then the env reloads
+`states/01_mudkip.state` and the visited tiles reset, like Red.
+
+### `emerald_rl/train.py`: the training loop
+
+stable-baselines3 PPO with 16 games in separate processes (`SubprocVecEnv`),
+2,048 steps per game per update (32,768 samples), minibatch 512, 3 epochs,
+γ 0.997, λ 0.95, entropy 0.01. `StatsCallback` logs the mean and max of every
+reward term when episodes end, so a single term taking off (reward hacking)
+shows up on its own graph. Checkpoints are saved every 10 updates.
+
+Measured: **648 steps/s** with 16 games (versus 900 for the bare emulator).
+The difference is PPO's update borrowing the same CPUs.
+
+### Debugging story: the hang that only happened with PyTorch
+
+The first training run froze with all CPUs busy and nothing happening.
+Tracking it down is a good example of narrowing a bug step by step:
+
+1. `py-spy dump` (it shows what a running Python process is doing) put the
+   workers inside mGBA's `load_raw_state`.
+2. Two envs in one process worked; resets worked; every multiprocessing mode
+   worked. But SB3's `DummyVecEnv`, which uses no extra processes, still hung.
+3. The remaining difference was that SB3 imports **PyTorch**. With `import torch`
+   added, a two-line script hung.
+4. `py-spy dump --native` showed the C stack: mGBA was calling **back into
+   Python**, first to deliver a log message, then (after that was fixed) to
+   report a button read, and the callback spun forever in
+   `_cffi_carefully_make_gil`, trying to take Python's global lock.
+5. Fix: stop mGBA from calling Python at all. `silence_logs()` adds a C-level
+   filter that drops messages before they reach Python, and
+   `no_python_callbacks()` clears the per-frame callbacks the bindings install
+   by default. We never used those callbacks, and dropping them makes every
+   frame a little cheaper.
+
+The general lesson: when two native libraries share a process (mGBA via cffi,
+PyTorch), cross-language callbacks are where they collide.
+
+### `tests/test_env.py`
+
+`python tests/test_env.py` checks: RAM reads agree with pygba's full decoder,
+the same buttons give the same game twice, the event score never goes down,
+the log is 7 bytes per step, and steps per second.
+
+---
+
+## 15. Log
 
 - **2026-10-02:** Research done (`docs/research/`). mGBA 0.10.5 built with
   Python bindings on `e-rl`; pygba, SB3 and CPU PyTorch installed in `.venv`.
@@ -753,3 +839,8 @@ Ordered as a path. Everything here is free.
   `videos/progress/2026-10-06_02_truck_to_mudkip.mp4` (22 s, 15× speed).
   Later the same day: player renamed to "RLhexed" (`intro.keys`, lowercase via
   SELECT). Both savestates were rebuilt, and video #2 re-rendered (23 s).
+- **2026-10-06 (environment):** `emerald_rl/env.py`, `emerald_rl/train.py` and
+  `tests/test_env.py` written (section 14). A random agent spends 99% of 4,096
+  steps in Birch's lab and changed the game options once in that time, which
+  the refundable penalty caught. Fixed a PyTorch/mGBA deadlock (section 14).
+  First run `run01` started: 16 games, 2M steps, 648 steps/s.

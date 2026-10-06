@@ -6,6 +6,7 @@ marking tiles it has already walked on, and a small vector of RAM facts.
 Rewards are "best so far" scores, so nothing can be farmed by repetition.
 """
 
+import json
 from collections import deque
 from pathlib import Path
 
@@ -23,6 +24,7 @@ ACTION_NAMES = list(ACTIONS)
 # Addresses from pret/pokeemerald (pokeemerald.sym, include/global.h, include/pokemon.h)
 SAVEBLOCK1_PTR = 0x03005D8C  # SaveBlock1 moves around in EWRAM ("DMA protection"); this pointer doesn't
 SAVEBLOCK2_PTR = 0x03005D90
+GMAIN_VBLANK_CB = 0x030022C0 + 0x0C  # gMain.vblankCallback: NULL while the game moves its save blocks
 PARTY_COUNT = 0x020244E9
 PARTY = 0x020244EC  # 6 x struct Pokemon (100 bytes); level/HP sit after the encrypted 80-byte box
 SB1_POS, SB1_LOCATION, SB1_FLAGS = 0x00, 0x04, 0x1270
@@ -33,6 +35,9 @@ TOWN_FLAGS = range(0x86F, 0x87F)  # FLAG_VISITED_LITTLEROOT_TOWN .. EVER_GRANDE_
 
 SCREEN_TILES = (10, 15)  # GBA screen = 15 x 10 tiles of 16 px
 PLAYER_TILE = (5, 7)  # (row, col) of the player's tile on screen; checked in tests/test_env.py
+
+MAP_SIZES = {(m["bank"], m["num"]): (m["width"], m["height"])
+             for m in json.loads((Path(__file__).parent / "data/map_data.json").read_text())["maps"]}
 
 DEFAULT_WEIGHTS = {
     "event": 1.0,  # per story/trainer/system flag set (most ever, minus flags set at start)
@@ -124,7 +129,20 @@ class EmeraldEnv(gym.Env):
         return self._u32(self.iwram, ptr_addr - 0x03000000) - 0x02000000
 
     def read(self):
-        """Every RAM fact the env uses, in one place."""
+        """Every RAM fact the env uses, in one place.
+
+        On map loads Emerald copies its save blocks to the heap and back ("DMA protection"), and
+        a frame can end mid-copy, so RAM briefly holds garbage (maps that don't exist, x = 12802).
+        Then the last good reading is returned instead."""
+        s = self._read_raw()
+        size = MAP_SIZES.get(s["map"])
+        ok = (self._u32(self.iwram, GMAIN_VBLANK_CB - 0x03000000) != 0 and size is not None
+              and 0 <= s["x"] < size[0] and 0 <= s["y"] < size[1])
+        if ok or not hasattr(self, "last_read"):
+            self.last_read = s
+        return self.last_read
+
+    def _read_raw(self):
         sb1, sb2 = self._sb(SAVEBLOCK1_PTR), self._sb(SAVEBLOCK2_PTR)
         ew = self.ewram
         x, y = np.frombuffer(ew[sb1 + SB1_POS:sb1 + SB1_POS + 4].tobytes(), np.int16)
@@ -169,13 +187,19 @@ class EmeraldEnv(gym.Env):
             self.episodes.write(f"{self.total_steps},{self.init_state}\n")  # step offset where it began
         return self._obs(s), {}
 
+    def press(self, action, on_frame=None):
+        """Hold the button 8 frames, release 16. Shared with replay.py so replays match exactly."""
+        for frame in range(24):
+            if frame == 0:
+                self.core.set_keys(ACTIONS[ACTION_NAMES[action]])
+            elif frame == 8:
+                self.core.set_keys()
+            self.core.run_frame()
+            if on_frame:
+                on_frame()
+
     def step(self, action):
-        self.core.set_keys(ACTIONS[ACTION_NAMES[action]])
-        for _ in range(8):
-            self.core.run_frame()
-        self.core.set_keys()
-        for _ in range(16):
-            self.core.run_frame()
+        self.press(action)
         self.frames.append(self._small_screen())
 
         s = self.read()

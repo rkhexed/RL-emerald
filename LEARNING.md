@@ -802,6 +802,50 @@ Tracking it down is a good example of narrowing a bug step by step:
 The general lesson: when two native libraries share a process (mGBA via cffi,
 PyTorch), cross-language callbacks are where they collide.
 
+### Bug: reading RAM while the game moves its save data
+
+The first heatmap stretched across all of Hoenn, because about 1 step in
+10,000 logged maps that don't exist (bank 63, map 50) or x = 12802. All of them
+were at the same moment: entering Birch's lab. The cause is Emerald's "DMA
+protection": on map loads, `MoveSaveBlocks_ResetHeap` copies ~60 KB of save
+data to the heap and back. mGBA's `run_frame()` stops at the end of a frame
+wherever the game's code happens to be, so sometimes we read RAM halfway
+through that copy.
+
+Fix (`env.read()`): the game sets `gMain.vblankCallback` to NULL during the
+copy. If it's NULL, or the map/position can't exist, the env returns the last
+good reading. This matters for the reward, not just the pictures: a garbage
+flag array for one step could have pushed "most flags ever set" up and paid
+a large fake event reward. Runs before the fix (`run01`) have these rows in
+their logs; the map tools skip them.
+
+### `emerald_rl/replay.py`: full-quality replays and grid videos
+
+Replays a game from its start state and button log, in full colour, checking
+each step against the logged (map, x, y). Several games render in parallel,
+then ffmpeg's `xstack` tiles them into one grid video, as Red's
+`tile_vids_to_grid.py` does. A 4×4 grid of 300 steps takes about 12 s.
+
+```bash
+python -m emerald_rl.replay runs/run01 --envs 0-15 --episode 0 --every 24 --scale 2
+```
+
+### `emerald_rl/mapviz.py`: Hoenn heatmaps and trails
+
+Draws the real Hoenn map from the decomp, with no ROM and no screenshots:
+each tileset's indexed PNG and palettes, each metatile's two layers of four 8×8
+tiles (with flip bits and a palette number), and each map's grid of
+metatiles. Agent positions from the logs are placed with `map_data.json`.
+
+```bash
+python -m emerald_rl.mapviz heatmap runs/run01             # where all agents stood (log-scaled)
+python -m emerald_rl.mapviz trails runs/run01 --start 14000 --steps 2000 --every 2
+python -m emerald_rl.mapviz world                          # the whole stitched overworld
+```
+
+Indoor maps are drawn at their door, so a lot of time inside the lab shows
+up as one hot tile on the lab's door.
+
 ### `tests/test_env.py`
 
 `python tests/test_env.py` checks: RAM reads agree with pygba's full decoder,
@@ -844,3 +888,8 @@ the log is 7 bytes per step, and steps per second.
   steps in Birch's lab and changed the game options once in that time, which
   the refundable penalty caught. Fixed a PyTorch/mGBA deadlock (section 14).
   First run `run01` started: 16 games, 2M steps, 648 steps/s.
+- **2026-10-06 (visuals):** `replay.py` (full-colour replays with per-step
+  checks, grid videos) and `mapviz.py` (Hoenn drawn from the decomp, heatmaps,
+  trails videos). Found and fixed reading RAM mid-save-block-copy (section 14).
+  First `run01` episode stats: the stuck penalty averaged −80.5 per episode,
+  against +2.6 for exploration.

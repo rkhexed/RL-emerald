@@ -98,13 +98,14 @@ def map_image(map_name):
     return img
 
 
-def world(region=None):
-    """The stitched overworld (outdoor maps only), optionally cropped to (x0, y0, x1, y1) in tiles."""
+def world(region=None, visited=None):
+    """The stitched overworld, optionally cropped to (x0, y0, x1, y1) in tiles. Maps placed beside their
+    door (Petalburg Woods, caves) are drawn only if in `visited` (a set of (bank, num)), when given."""
     W, H = MAPS["world_tiles"]
     x0, y0, x1, y1 = region or (0, 0, W, H)
     img = np.zeros(((y1 - y0) * T, (x1 - x0) * T, 3), np.uint8)
     for m in MAPS["maps"]:
-        if "coordinates" not in m:
+        if "coordinates" not in m or (m.get("beside_door") and visited is not None and (m["bank"], m["num"]) not in visited):
             continue
         mx, my = m["coordinates"]
         if mx >= x1 or my >= y1 or mx + m["width"] <= x0 or my + m["height"] <= y0:
@@ -157,6 +158,10 @@ def _tag(envs, episode):
     return (f"_env{'-'.join(map(str, envs))}" if envs else "") + (f"_ep{episode}" if episode is not None else "")
 
 
+def _visited(rows_list):
+    return {(int(b), int(n)) for r in rows_list for b, n in set(zip(r["bank"].tolist(), r["num"].tolist()))}
+
+
 def crop_box(gx, gy, margin=5):
     ok = gx >= 0
     W, H = MAPS["world_tiles"]
@@ -173,7 +178,7 @@ def heatmap(run, last=None, envs=None, episode=None):
         logs = {e: episode_rows(run, e, r, episode) for e, r in logs.items()}
     gx, gy = map(np.concatenate, zip(*(to_global(r[-last:] if last else r) for r in logs.values())))
     box = crop_box(gx, gy)
-    bg = world(box).astype(np.float32) * 0.55
+    bg = world(box, _visited(logs.values())).astype(np.float32) * 0.55
     ok = gx >= 0
     counts = np.zeros((box[3] - box[1], box[2] - box[0]))
     np.add.at(counts, (gy[ok] - box[1], gx[ok] - box[0]), 1)
@@ -214,7 +219,7 @@ def walkers(run, episode=0, start=0, steps=3000, inter=2, scale=2, envs=None):
     gx = np.concatenate([p[0][:n] for p in pos.values()])
     gy = np.concatenate([p[1][:n] for p in pos.values()])
     box = crop_box(gx, gy)
-    bg = world(box)
+    bg = world(box, _visited(load_run(run, envs).values()))
     out = Path(run) / "map" / f"walkers{_tag(envs, episode)}_s{start}_n{n}.mp4"
     out.parent.mkdir(exist_ok=True)
     facing = {e: 0 for e in pos}

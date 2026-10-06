@@ -93,7 +93,7 @@ def main():
     scale = a.scale or (3 if len(envs) == 1 else 1)
     out_dir = Path(a.run) / "videos"
     out_dir.mkdir(parents=True, exist_ok=True)
-    tag = f"ep{a.episode}_s{a.start}" + (f"_n{a.steps}" if a.steps else "")
+    tag = f"ep{a.episode}_s{a.start}" + (f"_n{a.steps}" if a.steps else "") + f"_x{a.every}_scale{scale}"
     jobs = [(a.run, e, a.episode, a.start, a.steps, a.every, scale, str(out_dir / f"env{e:03d}_{tag}.mp4"))
             for e in envs]
     with Pool(min(len(jobs), 16)) as pool:

@@ -1,7 +1,7 @@
 {
  "world_tiles": [
-  800,
-  383
+  908,
+  461
  ],
  "maps": [
   {
@@ -13,8 +13,8 @@
    "height": 30,
    "type": "MAP_TYPE_CITY",
    "coordinates": [
-    40,
-    232
+    101,
+    284
    ]
   },
   {
@@ -26,8 +26,8 @@
    "height": 60,
    "type": "MAP_TYPE_CITY",
    "coordinates": [
-    200,
-    260
+    261,
+    312
    ]
   },
   {
@@ -39,8 +39,8 @@
    "height": 20,
    "type": "MAP_TYPE_CITY",
    "coordinates": [
-    200,
-    140
+    261,
+    192
    ]
   },
   {
@@ -52,8 +52,8 @@
    "height": 60,
    "type": "MAP_TYPE_CITY",
    "coordinates": [
-    0,
-    122
+    61,
+    174
    ]
   },
   {
@@ -65,8 +65,8 @@
    "height": 20,
    "type": "MAP_TYPE_CITY",
    "coordinates": [
-    320,
-    0
+    381,
+    52
    ]
   },
   {
@@ -78,8 +78,8 @@
    "height": 40,
    "type": "MAP_TYPE_CITY",
    "coordinates": [
-    480,
-    70
+    541,
+    122
    ]
   },
   {
@@ -91,8 +91,8 @@
    "height": 40,
    "type": "MAP_TYPE_CITY",
    "coordinates": [
-    640,
-    100
+    701,
+    152
    ]
   },
   {
@@ -113,8 +113,8 @@
    "height": 80,
    "type": "MAP_TYPE_CITY",
    "coordinates": [
-    760,
-    180
+    821,
+    232
    ]
   },
   {
@@ -126,8 +126,8 @@
    "height": 20,
    "type": "MAP_TYPE_TOWN",
    "coordinates": [
-    120,
-    282
+    181,
+    334
    ]
   },
   {
@@ -139,8 +139,8 @@
    "height": 20,
    "type": "MAP_TYPE_TOWN",
    "coordinates": [
-    120,
-    242
+    181,
+    294
    ]
   },
   {
@@ -152,8 +152,8 @@
    "height": 20,
    "type": "MAP_TYPE_TOWN",
    "coordinates": [
-    60,
-    362
+    121,
+    414
    ]
   },
   {
@@ -165,8 +165,8 @@
    "height": 20,
    "type": "MAP_TYPE_TOWN",
    "coordinates": [
-    140,
-    60
+    201,
+    112
    ]
   },
   {
@@ -178,8 +178,8 @@
    "height": 20,
    "type": "MAP_TYPE_TOWN",
    "coordinates": [
-    80,
-    0
+    141,
+    52
    ]
   },
   {
@@ -191,8 +191,8 @@
    "height": 20,
    "type": "MAP_TYPE_TOWN",
    "coordinates": [
-    120,
-    140
+    181,
+    192
    ]
   },
   {
@@ -204,8 +204,8 @@
    "height": 40,
    "type": "MAP_TYPE_TOWN",
    "coordinates": [
-    480,
-    260
+    541,
+    312
    ]
   },
   {
@@ -217,8 +217,8 @@
    "height": 20,
    "type": "MAP_TYPE_ROUTE",
    "coordinates": [
-    120,
-    262
+    181,
+    314
    ]
   },
   {
@@ -230,8 +230,8 @@
    "height": 20,
    "type": "MAP_TYPE_ROUTE",
    "coordinates": [
-    70,
-    242
+    131,
+    294
    ]
   },
   {
@@ -243,8 +243,8 @@
    "height": 22,
    "type": "MAP_TYPE_ROUTE",
    "coordinates": [
-    120,
-    220
+    181,
+    272
    ]
   },
   {
@@ -256,8 +256,8 @@
    "height": 80,
    "type": "MAP_TYPE_ROUTE",
    "coordinates": [
-    0,
-    182
+    61,
+    234
    ]
   },
   {
@@ -269,8 +269,8 @@
    "height": 80,
    "type": "MAP_TYPE_ROUTE",
    "coordinates": [
-    0,
-    262
+    61,
+    314
    ]
   },
   {
@@ -282,8 +282,8 @@
    "height": 20,
    "type": "MAP_TYPE_ROUTE",
    "coordinates": [
-    0,
-    342
+    61,
+    394
    ]
   },
   {
@@ -295,8 +295,8 @@
    "height": 20,
    "type": "MAP_TYPE_ROUTE",
    "coordinates": [
-    80,
-    360
+    141,
+    412
    ]
   },
   {
@@ -308,8 +308,8 @@
    "height": 20,
    "type": "MAP_TYPE_ROUTE",
    "coordinates": [
-    140,
-    360
+    201,
+    412
    ]
   },
   {
@@ -321,8 +321,8 @@
    "height": 63,
    "type": "MAP_TYPE_ROUTE",
    "coordinates": [
-    200,
-    320
+    261,
+    372
    ]
   },
   {
@@ -334,8 +334,8 @@
    "height": 100,
    "type": "MAP_TYPE_ROUTE",
    "coordinates": [
-    200,
-    160
+    261,
+    212
    ]
   },
   {
@@ -347,8 +347,8 @@
    "height": 140,
    "type": "MAP_TYPE_ROUTE",
    "coordinates": [
-    200,
-    0
+    261,
+    52
    ]
   },
   {
@@ -360,8 +360,8 @@
    "height": 60,
    "type": "MAP_TYPE_ROUTE",
    "coordinates": [
-    160,
-    20
+    221,
+    72
    ]
   },
   {
@@ -373,8 +373,8 @@
    "height": 20,
    "type": "MAP_TYPE_ROUTE",
    "coordinates": [
-    100,
-    0
+    161,
+    52
    ]
   },
   {
@@ -386,8 +386,8 @@
    "height": 80,
    "type": "MAP_TYPE_ROUTE",
    "coordinates": [
-    40,
-    2
+    101,
+    54
    ]
   },
   {
@@ -399,8 +399,8 @@
    "height": 80,
    "type": "MAP_TYPE_ROUTE",
    "coordinates": [
-    0,
-    42
+    61,
+    94
    ]
   },
   {
@@ -412,8 +412,8 @@
    "height": 20,
    "type": "MAP_TYPE_ROUTE",
    "coordinates": [
-    40,
-    122
+    101,
+    174
    ]
   },
   {
@@ -425,8 +425,8 @@
    "height": 20,
    "type": "MAP_TYPE_ROUTE",
    "coordinates": [
-    140,
-    140
+    201,
+    192
    ]
   },
   {
@@ -438,8 +438,8 @@
    "height": 20,
    "type": "MAP_TYPE_ROUTE",
    "coordinates": [
-    240,
-    140
+    301,
+    192
    ]
   },
   {
@@ -451,8 +451,8 @@
    "height": 140,
    "type": "MAP_TYPE_ROUTE",
    "coordinates": [
-    280,
-    0
+    341,
+    52
    ]
   },
   {
@@ -464,8 +464,8 @@
    "height": 100,
    "type": "MAP_TYPE_ROUTE",
    "coordinates": [
-    360,
-    0
+    421,
+    52
    ]
   },
   {
@@ -477,8 +477,8 @@
    "height": 20,
    "type": "MAP_TYPE_ROUTE",
    "coordinates": [
-    400,
-    80
+    461,
+    132
    ]
   },
   {
@@ -490,8 +490,8 @@
    "height": 40,
    "type": "MAP_TYPE_ROUTE",
    "coordinates": [
-    420,
-    100
+    481,
+    152
    ]
   },
   {
@@ -503,8 +503,8 @@
    "height": 20,
    "type": "MAP_TYPE_ROUTE",
    "coordinates": [
-    320,
-    140
+    381,
+    192
    ]
   },
   {
@@ -516,8 +516,8 @@
    "height": 80,
    "type": "MAP_TYPE_OCEAN_ROUTE",
    "coordinates": [
-    560,
-    60
+    621,
+    112
    ]
   },
   {
@@ -529,8 +529,8 @@
    "height": 40,
    "type": "MAP_TYPE_OCEAN_ROUTE",
    "coordinates": [
-    640,
-    60
+    701,
+    112
    ]
   },
   {
@@ -542,8 +542,8 @@
    "height": 80,
    "type": "MAP_TYPE_OCEAN_ROUTE",
    "coordinates": [
-    560,
-    140
+    621,
+    192
    ]
   },
   {
@@ -555,8 +555,8 @@
    "height": 80,
    "type": "MAP_TYPE_OCEAN_ROUTE",
    "coordinates": [
-    640,
-    140
+    701,
+    192
    ]
   },
   {
@@ -568,8 +568,8 @@
    "height": 40,
    "type": "MAP_TYPE_OCEAN_ROUTE",
    "coordinates": [
-    640,
-    220
+    701,
+    272
    ]
   },
   {
@@ -581,8 +581,8 @@
    "height": 40,
    "type": "MAP_TYPE_OCEAN_ROUTE",
    "coordinates": [
-    640,
-    260
+    701,
+    312
    ]
   },
   {
@@ -594,8 +594,8 @@
    "height": 40,
    "type": "MAP_TYPE_OCEAN_ROUTE",
    "coordinates": [
-    560,
-    260
+    621,
+    312
    ]
   },
   {
@@ -607,8 +607,8 @@
    "height": 40,
    "type": "MAP_TYPE_OCEAN_ROUTE",
    "coordinates": [
-    500,
-    260
+    561,
+    312
    ]
   },
   {
@@ -620,8 +620,8 @@
    "height": 40,
    "type": "MAP_TYPE_OCEAN_ROUTE",
    "coordinates": [
-    400,
-    260
+    461,
+    312
    ]
   },
   {
@@ -633,8 +633,8 @@
    "height": 40,
    "type": "MAP_TYPE_OCEAN_ROUTE",
    "coordinates": [
-    320,
-    260
+    381,
+    312
    ]
   },
   {
@@ -646,8 +646,8 @@
    "height": 40,
    "type": "MAP_TYPE_OCEAN_ROUTE",
    "coordinates": [
-    240,
-    260
+    301,
+    312
    ]
   },
   {
@@ -722,8 +722,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    125,
-    290
+    186,
+    342
    ]
   },
   {
@@ -735,8 +735,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    125,
-    290
+    186,
+    342
    ]
   },
   {
@@ -748,8 +748,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    134,
-    290
+    195,
+    342
    ]
   },
   {
@@ -761,8 +761,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    134,
-    290
+    195,
+    342
    ]
   },
   {
@@ -774,8 +774,8 @@
    "height": 13,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    127,
-    298
+    188,
+    350
    ]
   },
   {
@@ -787,8 +787,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    125,
-    249
+    186,
+    301
    ]
   },
   {
@@ -800,8 +800,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    135,
-    258
+    196,
+    310
    ]
   },
   {
@@ -813,8 +813,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    126,
-    258
+    187,
+    310
    ]
   },
   {
@@ -826,8 +826,8 @@
    "height": 10,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    126,
-    258
+    187,
+    310
    ]
   },
   {
@@ -839,8 +839,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    134,
-    248
+    195,
+    300
    ]
   },
   {
@@ -852,8 +852,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    77,
-    376
+    138,
+    428
    ]
   },
   {
@@ -865,8 +865,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    62,
-    372
+    123,
+    424
    ]
   },
   {
@@ -878,8 +878,8 @@
    "height": 10,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    62,
-    372
+    123,
+    424
    ]
   },
   {
@@ -891,8 +891,8 @@
    "height": 28,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    68,
-    379
+    129,
+    431
    ]
   },
   {
@@ -904,8 +904,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    63,
-    365
+    124,
+    417
    ]
   },
   {
@@ -917,8 +917,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    68,
-    370
+    129,
+    422
    ]
   },
   {
@@ -930,8 +930,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    152,
-    75
+    213,
+    127
    ]
   },
   {
@@ -943,8 +943,8 @@
    "height": 19,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    145,
-    75
+    206,
+    127
    ]
   },
   {
@@ -956,8 +956,8 @@
    "height": 19,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    145,
-    75
+    206,
+    127
    ]
   },
   {
@@ -969,8 +969,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    156,
-    75
+    217,
+    127
    ]
   },
   {
@@ -982,8 +982,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    155,
-    65
+    216,
+    117
    ]
   },
   {
@@ -995,8 +995,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    149,
-    66
+    210,
+    118
    ]
   },
   {
@@ -1008,8 +1008,8 @@
    "height": 10,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    149,
-    66
+    210,
+    118
    ]
   },
   {
@@ -1021,8 +1021,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    95,
-    15
+    156,
+    67
    ]
   },
   {
@@ -1034,8 +1034,8 @@
    "height": 10,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    88,
-    7
+    149,
+    59
    ]
   },
   {
@@ -1065,8 +1065,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    94,
-    7
+    155,
+    59
    ]
   },
   {
@@ -1078,8 +1078,8 @@
    "height": 10,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    94,
-    7
+    155,
+    59
    ]
   },
   {
@@ -1091,8 +1091,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    86,
-    17
+    147,
+    69
    ]
   },
   {
@@ -1104,8 +1104,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    81,
-    6
+    142,
+    58
    ]
   },
   {
@@ -1117,8 +1117,8 @@
    "height": 10,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    123,
-    147
+    184,
+    199
    ]
   },
   {
@@ -1148,8 +1148,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    132,
-    143
+    193,
+    195
    ]
   },
   {
@@ -1161,8 +1161,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    136,
-    143
+    197,
+    195
    ]
   },
   {
@@ -1174,8 +1174,8 @@
    "height": 10,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    136,
-    143
+    197,
+    195
    ]
   },
   {
@@ -1187,8 +1187,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    130,
-    154
+    191,
+    206
    ]
   },
   {
@@ -1200,8 +1200,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    121,
-    154
+    182,
+    206
    ]
   },
   {
@@ -1213,8 +1213,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    137,
-    155
+    198,
+    207
    ]
   },
   {
@@ -1226,8 +1226,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    488,
-    275
+    549,
+    327
    ]
   },
   {
@@ -1239,8 +1239,8 @@
    "height": 10,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    488,
-    275
+    549,
+    327
    ]
   },
   {
@@ -1252,8 +1252,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    496,
-    273
+    557,
+    325
    ]
   },
   {
@@ -1265,8 +1265,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    483,
-    282
+    544,
+    334
    ]
   },
   {
@@ -1278,8 +1278,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    492,
-    284
+    553,
+    336
    ]
   },
   {
@@ -1291,8 +1291,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    482,
-    272
+    543,
+    324
    ]
   },
   {
@@ -1304,8 +1304,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    497,
-    281
+    558,
+    333
    ]
   },
   {
@@ -1317,8 +1317,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    47,
-    237
+    108,
+    289
    ]
   },
   {
@@ -1330,8 +1330,8 @@
    "height": 112,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    55,
-    240
+    116,
+    292
    ]
   },
   {
@@ -1343,8 +1343,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    50,
-    251
+    111,
+    303
    ]
   },
   {
@@ -1356,8 +1356,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    60,
-    256
+    121,
+    308
    ]
   },
   {
@@ -1369,8 +1369,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    60,
-    248
+    121,
+    300
    ]
   },
   {
@@ -1382,8 +1382,8 @@
    "height": 10,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    60,
-    248
+    121,
+    300
    ]
   },
   {
@@ -1395,8 +1395,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    65,
-    244
+    126,
+    296
    ]
   },
   {
@@ -1408,8 +1408,8 @@
    "height": 15,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    226,
-    298
+    287,
+    350
    ]
   },
   {
@@ -1421,8 +1421,8 @@
    "height": 15,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    226,
-    298
+    287,
+    350
    ]
   },
   {
@@ -1434,8 +1434,8 @@
    "height": 10,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    210,
-    272
+    271,
+    324
    ]
   },
   {
@@ -1465,8 +1465,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    205,
-    279
+    266,
+    331
    ]
   },
   {
@@ -1478,8 +1478,8 @@
    "height": 11,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    204,
-    286
+    265,
+    338
    ]
   },
   {
@@ -1491,8 +1491,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    230,
-    286
+    291,
+    338
    ]
   },
   {
@@ -1504,8 +1504,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    230,
-    286
+    291,
+    338
    ]
   },
   {
@@ -1517,8 +1517,8 @@
    "height": 15,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    228,
-    272
+    289,
+    324
    ]
   },
   {
@@ -1530,8 +1530,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    221,
-    304
+    282,
+    356
    ]
   },
   {
@@ -1543,8 +1543,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    219,
-    279
+    280,
+    331
    ]
   },
   {
@@ -1556,8 +1556,8 @@
    "height": 10,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    219,
-    279
+    280,
+    331
    ]
   },
   {
@@ -1569,8 +1569,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    213,
-    286
+    274,
+    338
    ]
   },
   {
@@ -1582,8 +1582,8 @@
    "height": 21,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    208,
-    145
+    269,
+    197
    ]
   },
   {
@@ -1595,8 +1595,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    235,
-    145
+    296,
+    197
    ]
   },
   {
@@ -1608,8 +1608,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    232,
-    154
+    293,
+    206
    ]
   },
   {
@@ -1621,8 +1621,8 @@
    "height": 11,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    208,
-    153
+    269,
+    205
    ]
   },
   {
@@ -1634,8 +1634,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    219,
-    154
+    280,
+    206
    ]
   },
   {
@@ -1647,8 +1647,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    222,
-    145
+    283,
+    197
    ]
   },
   {
@@ -1660,8 +1660,8 @@
    "height": 10,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    222,
-    145
+    283,
+    197
    ]
   },
   {
@@ -1673,8 +1673,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    223,
-    154
+    284,
+    206
    ]
   },
   {
@@ -1686,8 +1686,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    11,
-    137
+    72,
+    189
    ]
   },
   {
@@ -1699,8 +1699,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    11,
-    137
+    72,
+    189
    ]
   },
   {
@@ -1712,8 +1712,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    11,
-    137
+    72,
+    189
    ]
   },
   {
@@ -1725,8 +1725,8 @@
    "height": 20,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    27,
-    141
+    88,
+    193
    ]
   },
   {
@@ -1738,8 +1738,8 @@
    "height": 11,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    27,
-    156
+    88,
+    208
    ]
   },
   {
@@ -1751,8 +1751,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    16,
-    160
+    77,
+    212
    ]
   },
   {
@@ -1764,8 +1764,8 @@
    "height": 10,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    16,
-    160
+    77,
+    212
    ]
   },
   {
@@ -1777,8 +1777,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    16,
-    167
+    77,
+    219
    ]
   },
   {
@@ -1790,8 +1790,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    13,
-    152
+    74,
+    204
    ]
   },
   {
@@ -1803,8 +1803,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    13,
-    152
+    74,
+    204
    ]
   },
   {
@@ -1816,8 +1816,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    33,
-    141
+    94,
+    193
    ]
   },
   {
@@ -1829,8 +1829,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    9,
-    160
+    70,
+    212
    ]
   },
   {
@@ -1842,8 +1842,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    30,
-    150
+    91,
+    202
    ]
   },
   {
@@ -1855,8 +1855,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    5,
-    173
+    66,
+    225
    ]
   },
   {
@@ -1868,8 +1868,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    5,
-    173
+    66,
+    225
    ]
   },
   {
@@ -1881,8 +1881,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    5,
-    173
+    66,
+    225
    ]
   },
   {
@@ -1894,8 +1894,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    26,
-    168
+    87,
+    220
    ]
   },
   {
@@ -1907,8 +1907,8 @@
    "height": 6,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    330,
-    3
+    391,
+    55
    ]
   },
   {
@@ -1920,8 +1920,8 @@
    "height": 25,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    342,
-    11
+    403,
+    63
    ]
   },
   {
@@ -1933,8 +1933,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    325,
-    6
+    386,
+    58
    ]
   },
   {
@@ -1946,8 +1946,8 @@
    "height": 10,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    325,
-    6
+    386,
+    58
    ]
   },
   {
@@ -1959,8 +1959,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    324,
-    14
+    385,
+    66
    ]
   },
   {
@@ -1972,8 +1972,8 @@
    "height": 6,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    337,
-    3
+    398,
+    55
    ]
   },
   {
@@ -1985,8 +1985,8 @@
    "height": 6,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    345,
-    3
+    406,
+    55
    ]
   },
   {
@@ -1998,8 +1998,8 @@
    "height": 6,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    352,
-    2
+    413,
+    54
    ]
   },
   {
@@ -2011,8 +2011,8 @@
    "height": 6,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    332,
-    13
+    393,
+    65
    ]
   },
   {
@@ -2024,8 +2024,8 @@
    "height": 6,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    357,
-    13
+    418,
+    65
    ]
   },
   {
@@ -2037,8 +2037,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    517,
-    94
+    578,
+    146
    ]
   },
   {
@@ -2050,8 +2050,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    517,
-    94
+    578,
+    146
    ]
   },
   {
@@ -2063,8 +2063,8 @@
    "height": 14,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    491,
-    75
+    552,
+    127
    ]
   },
   {
@@ -2076,8 +2076,8 @@
    "height": 13,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    491,
-    75
+    552,
+    127
    ]
   },
   {
@@ -2089,8 +2089,8 @@
    "height": 12,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    503,
-    94
+    564,
+    146
    ]
   },
   {
@@ -2102,8 +2102,8 @@
    "height": 33,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    503,
-    94
+    564,
+    146
    ]
   },
   {
@@ -2115,8 +2115,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    504,
-    84
+    565,
+    136
    ]
   },
   {
@@ -2128,8 +2128,8 @@
    "height": 10,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    504,
-    84
+    565,
+    136
    ]
   },
   {
@@ -2150,8 +2150,8 @@
    "height": 14,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    519,
-    84
+    580,
+    136
    ]
   },
   {
@@ -2163,8 +2163,8 @@
    "height": 15,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    492,
-    102
+    553,
+    154
    ]
   },
   {
@@ -2176,8 +2176,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    516,
-    76
+    577,
+    128
    ]
   },
   {
@@ -2189,8 +2189,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    522,
-    76
+    583,
+    128
    ]
   },
   {
@@ -2202,8 +2202,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    535,
-    85
+    596,
+    137
    ]
   },
   {
@@ -2215,8 +2215,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    491,
-    92
+    552,
+    144
    ]
   },
   {
@@ -2228,8 +2228,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    492,
-    84
+    553,
+    136
    ]
   },
   {
@@ -2241,8 +2241,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    507,
-    76
+    568,
+    128
    ]
   },
   {
@@ -2254,8 +2254,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    507,
-    76
+    568,
+    128
    ]
   },
   {
@@ -2267,8 +2267,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    507,
-    76
+    568,
+    128
    ]
   },
   {
@@ -2280,8 +2280,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    507,
-    76
+    568,
+    128
    ]
   },
   {
@@ -2293,8 +2293,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    507,
-    76
+    568,
+    128
    ]
   },
   {
@@ -2306,8 +2306,8 @@
    "height": 12,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    507,
-    76
+    568,
+    128
    ]
   },
   {
@@ -2319,8 +2319,8 @@
    "height": 6,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    507,
-    76
+    568,
+    128
    ]
   },
   {
@@ -2332,8 +2332,8 @@
    "height": 36,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    678,
-    109
+    739,
+    161
    ]
   },
   {
@@ -2345,8 +2345,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    668,
-    109
+    729,
+    161
    ]
   },
   {
@@ -2358,8 +2358,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    707,
-    125
+    768,
+    177
    ]
   },
   {
@@ -2371,8 +2371,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    668,
-    116
+    729,
+    168
    ]
   },
   {
@@ -2384,8 +2384,8 @@
    "height": 10,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    668,
-    116
+    729,
+    168
    ]
   },
   {
@@ -2397,8 +2397,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    677,
-    118
+    738,
+    170
    ]
   },
   {
@@ -2410,8 +2410,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    689,
-    106
+    750,
+    158
    ]
   },
   {
@@ -2423,8 +2423,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    659,
-    110
+    720,
+    162
    ]
   },
   {
@@ -2436,8 +2436,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    658,
-    116
+    719,
+    168
    ]
   },
   {
@@ -2449,8 +2449,8 @@
    "height": 10,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    704,
-    115
+    765,
+    167
    ]
   },
   {
@@ -2462,8 +2462,8 @@
    "height": 10,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    704,
-    115
+    765,
+    167
    ]
   },
   {
@@ -2475,8 +2475,8 @@
    "height": 10,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    676,
-    124
+    737,
+    176
    ]
   },
   {
@@ -2488,8 +2488,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    676,
-    124
+    737,
+    176
    ]
   },
   {
@@ -2636,8 +2636,8 @@
    "height": 14,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    778,
-    185
+    839,
+    237
    ]
   },
   {
@@ -2649,8 +2649,8 @@
    "height": 14,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    778,
-    185
+    839,
+    237
    ]
   },
   {
@@ -2662,8 +2662,8 @@
    "height": 14,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    778,
-    185
+    839,
+    237
    ]
   },
   {
@@ -2675,8 +2675,8 @@
    "height": 14,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    778,
-    185
+    839,
+    237
    ]
   },
   {
@@ -2688,8 +2688,8 @@
    "height": 13,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    778,
-    185
+    839,
+    237
    ]
   },
   {
@@ -2701,8 +2701,8 @@
    "height": 13,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    778,
-    185
+    839,
+    237
    ]
   },
   {
@@ -2714,8 +2714,8 @@
    "height": 13,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    778,
-    185
+    839,
+    237
    ]
   },
   {
@@ -2727,8 +2727,8 @@
    "height": 13,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    778,
-    185
+    839,
+    237
    ]
   },
   {
@@ -2740,8 +2740,8 @@
    "height": 34,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    778,
-    185
+    839,
+    237
    ]
   },
   {
@@ -2753,8 +2753,8 @@
    "height": 13,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    778,
-    185
+    839,
+    237
    ]
   },
   {
@@ -2766,8 +2766,8 @@
    "height": 12,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    778,
-    185
+    839,
+    237
    ]
   },
   {
@@ -2779,8 +2779,8 @@
    "height": 17,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    778,
-    185
+    839,
+    237
    ]
   },
   {
@@ -2792,8 +2792,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    787,
-    228
+    848,
+    280
    ]
   },
   {
@@ -2805,8 +2805,8 @@
    "height": 10,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    787,
-    228
+    848,
+    280
    ]
   },
   {
@@ -2818,8 +2818,8 @@
    "height": 10,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    778,
-    185
+    839,
+    237
    ]
   },
   {
@@ -2831,8 +2831,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    17,
-    232
+    78,
+    284
    ]
   },
   {
@@ -2844,8 +2844,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    5,
-    200
+    66,
+    252
    ]
   },
   {
@@ -2857,8 +2857,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    213,
-    113
+    274,
+    165
    ]
   },
   {
@@ -2870,8 +2870,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    226,
-    18
+    287,
+    70
    ]
   },
   {
@@ -2883,8 +2883,8 @@
    "height": 12,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    188,
-    47
+    249,
+    99
    ]
   },
   {
@@ -2896,8 +2896,8 @@
    "height": 12,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    166,
-    66
+    221,
+    40
    ]
   },
   {
@@ -2909,8 +2909,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    69,
-    7
+    130,
+    59
    ]
   },
   {
@@ -2922,8 +2922,8 @@
    "height": 26,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    69,
-    7
+    130,
+    59
    ]
   },
   {
@@ -2935,8 +2935,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    67,
-    38
+    128,
+    90
    ]
   },
   {
@@ -2948,8 +2948,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    78,
-    130
+    139,
+    182
    ]
   },
   {
@@ -2961,8 +2961,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    191,
-    145
+    252,
+    197
    ]
   },
   {
@@ -2974,8 +2974,8 @@
    "height": 14,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    437,
-    85
+    498,
+    137
    ]
   },
   {
@@ -2986,10 +2986,11 @@
    "width": 30,
    "height": 42,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    48,
-    65
-   ]
+   "coordinates": [
+    142,
+    76
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_METEOR_FALLS_1F_2R",
@@ -2999,10 +3000,11 @@
    "width": 30,
    "height": 32,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    48,
-    65
-   ]
+   "coordinates": [
+    123,
+    19
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_METEOR_FALLS_B1F_1R",
@@ -3012,10 +3014,11 @@
    "width": 29,
    "height": 38,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    48,
-    65
-   ]
+   "coordinates": [
+    142,
+    119
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_METEOR_FALLS_B1F_2R",
@@ -3025,10 +3028,11 @@
    "width": 11,
    "height": 18,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    48,
-    65
-   ]
+   "coordinates": [
+    172,
+    119
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_RUSTURF_TUNNEL",
@@ -3038,10 +3042,11 @@
    "width": 36,
    "height": 24,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    128,
-    141
-   ]
+   "coordinates": [
+    144,
+    195
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_UNDERWATER_SOOTOPOLIS_CITY",
@@ -3060,10 +3065,11 @@
    "width": 17,
    "height": 33,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    229,
-    87
-   ]
+   "coordinates": [
+    302,
+    107
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_GRANITE_CAVE_1F",
@@ -3073,10 +3079,11 @@
    "width": 42,
    "height": 15,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    48,
-    358
-   ]
+   "coordinates": [
+    68,
+    415
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_GRANITE_CAVE_B1F",
@@ -3086,10 +3093,11 @@
    "width": 32,
    "height": 26,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    48,
-    358
-   ]
+   "coordinates": [
+    72,
+    431
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_GRANITE_CAVE_B2F",
@@ -3099,10 +3107,11 @@
    "width": 32,
    "height": 26,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    48,
-    358
-   ]
+   "coordinates": [
+    105,
+    435
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_GRANITE_CAVE_STEVENS_ROOM",
@@ -3112,10 +3121,11 @@
    "width": 15,
    "height": 14,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    48,
-    358
-   ]
+   "coordinates": [
+    52,
+    415
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_PETALBURG_WOODS",
@@ -3125,10 +3135,11 @@
    "width": 48,
    "height": 44,
    "type": "MAP_TYPE_ROUTE",
-   "anchor": [
-    10,
-    212
-   ]
+   "coordinates": [
+    12,
+    221
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_MT_CHIMNEY",
@@ -3138,10 +3149,11 @@
    "width": 40,
    "height": 47,
    "type": "MAP_TYPE_ROUTE",
-   "anchor": [
-    166,
-    66
-   ]
+   "coordinates": [
+    204,
+    4
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_JAGGED_PASS",
@@ -3151,10 +3163,11 @@
    "width": 30,
    "height": 46,
    "type": "MAP_TYPE_ROUTE",
-   "anchor": [
-    166,
-    66
-   ]
+   "coordinates": [
+    202,
+    133
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_FIERY_PATH",
@@ -3164,10 +3177,11 @@
    "width": 35,
    "height": 38,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    171,
-    56
-   ]
+   "coordinates": [
+    185,
+    73
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_MT_PYRE_1F",
@@ -3178,8 +3192,8 @@
    "height": 19,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    442,
-    129
+    503,
+    181
    ]
   },
   {
@@ -3191,8 +3205,8 @@
    "height": 13,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    442,
-    129
+    503,
+    181
    ]
   },
   {
@@ -3204,8 +3218,8 @@
    "height": 13,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    442,
-    129
+    503,
+    181
    ]
   },
   {
@@ -3217,8 +3231,8 @@
    "height": 13,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    442,
-    129
+    503,
+    181
    ]
   },
   {
@@ -3230,8 +3244,8 @@
    "height": 13,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    442,
-    129
+    503,
+    181
    ]
   },
   {
@@ -3243,8 +3257,8 @@
    "height": 13,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    442,
-    129
+    503,
+    181
    ]
   },
   {
@@ -3256,8 +3270,8 @@
    "height": 51,
    "type": "MAP_TYPE_ROUTE",
    "anchor": [
-    442,
-    129
+    503,
+    181
    ]
   },
   {
@@ -3269,8 +3283,8 @@
    "height": 37,
    "type": "MAP_TYPE_ROUTE",
    "anchor": [
-    442,
-    129
+    503,
+    181
    ]
   },
   {
@@ -3282,8 +3296,8 @@
    "height": 30,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    550,
-    75
+    611,
+    127
    ]
   },
   {
@@ -3295,8 +3309,8 @@
    "height": 24,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    550,
-    75
+    611,
+    127
    ]
   },
   {
@@ -3308,8 +3322,8 @@
    "height": 24,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    550,
-    75
+    611,
+    127
    ]
   },
   {
@@ -3473,10 +3487,11 @@
    "width": 46,
    "height": 45,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    778,
-    221
-   ]
+   "coordinates": [
+    862,
+    229
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_VICTORY_ROAD_B1F",
@@ -3486,10 +3501,11 @@
    "width": 46,
    "height": 31,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    778,
-    221
-   ]
+   "coordinates": [
+    862,
+    275
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_VICTORY_ROAD_B2F",
@@ -3499,10 +3515,11 @@
    "width": 46,
    "height": 31,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    778,
-    221
-   ]
+   "coordinates": [
+    862,
+    307
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_SHOAL_CAVE_LOW_TIDE_ENTRANCE_ROOM",
@@ -3512,10 +3529,11 @@
    "width": 35,
    "height": 35,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    662,
-    79
-   ]
+   "coordinates": [
+    689,
+    76
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_SHOAL_CAVE_LOW_TIDE_INNER_ROOM",
@@ -3525,10 +3543,11 @@
    "width": 46,
    "height": 38,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    662,
-    79
-   ]
+   "coordinates": [
+    663,
+    37
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_SHOAL_CAVE_LOW_TIDE_STAIRS_ROOM",
@@ -3538,10 +3557,11 @@
    "width": 21,
    "height": 15,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    662,
-    79
-   ]
+   "coordinates": [
+    710,
+    38
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_SHOAL_CAVE_LOW_TIDE_LOWER_ROOM",
@@ -3551,10 +3571,11 @@
    "width": 31,
    "height": 14,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    662,
-    79
-   ]
+   "coordinates": [
+    652,
+    22
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_SHOAL_CAVE_HIGH_TIDE_ENTRANCE_ROOM",
@@ -3582,10 +3603,11 @@
    "width": 9,
    "height": 9,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    235,
-    184
-   ]
+   "coordinates": [
+    302,
+    228
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_NEW_MAUVILLE_INSIDE",
@@ -3595,10 +3617,11 @@
    "width": 41,
    "height": 41,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    235,
-    184
-   ]
+   "coordinates": [
+    312,
+    213
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_ABANDONED_SHIP_DECK",
@@ -3608,10 +3631,11 @@
    "width": 23,
    "height": 21,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    169,
-    366
-   ]
+   "coordinates": [
+    208,
+    390
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_ABANDONED_SHIP_CORRIDORS_1F",
@@ -3621,10 +3645,11 @@
    "width": 18,
    "height": 12,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    169,
-    366
-   ]
+   "coordinates": [
+    204,
+    377
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_ABANDONED_SHIP_ROOMS_1F",
@@ -3634,10 +3659,11 @@
    "width": 18,
    "height": 17,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    169,
-    366
-   ]
+   "coordinates": [
+    198,
+    359
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_ABANDONED_SHIP_CORRIDORS_B1F",
@@ -3647,10 +3673,11 @@
    "width": 13,
    "height": 10,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    169,
-    366
-   ]
+   "coordinates": [
+    223,
+    370
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_ABANDONED_SHIP_ROOMS_B1F",
@@ -3660,10 +3687,11 @@
    "width": 27,
    "height": 8,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    169,
-    366
-   ]
+   "coordinates": [
+    233,
+    381
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_ABANDONED_SHIP_ROOMS2_B1F",
@@ -3673,10 +3701,11 @@
    "width": 18,
    "height": 8,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    169,
-    366
-   ]
+   "coordinates": [
+    217,
+    361
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_ABANDONED_SHIP_UNDERWATER1",
@@ -3695,10 +3724,11 @@
    "width": 9,
    "height": 8,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    169,
-    366
-   ]
+   "coordinates": [
+    237,
+    367
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_ABANDONED_SHIP_ROOMS2_1F",
@@ -3708,10 +3738,11 @@
    "width": 9,
    "height": 17,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    169,
-    366
-   ]
+   "coordinates": [
+    194,
+    377
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_ABANDONED_SHIP_CAPTAINS_OFFICE",
@@ -3721,10 +3752,11 @@
    "width": 9,
    "height": 7,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    169,
-    366
-   ]
+   "coordinates": [
+    223,
+    382
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_ABANDONED_SHIP_UNDERWATER2",
@@ -3761,10 +3793,11 @@
    "width": 17,
    "height": 33,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    9,
-    282
-   ]
+   "coordinates": [
+    43,
+    302
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_ANCIENT_TOMB",
@@ -3774,10 +3807,11 @@
    "width": 17,
    "height": 33,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    367,
-    55
-   ]
+   "coordinates": [
+    403,
+    75
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_UNDERWATER_ROUTE134",
@@ -3823,10 +3857,11 @@
    "width": 15,
    "height": 20,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    379,
-    23
-   ]
+   "coordinates": [
+    462,
+    56
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_AQUA_HIDEOUT_UNUSED_RUBY_MAP1",
@@ -3863,10 +3898,11 @@
    "width": 18,
    "height": 18,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    536,
-    266
-   ]
+   "coordinates": [
+    580,
+    293
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_SKY_PILLAR_OUTSIDE",
@@ -3876,10 +3912,11 @@
    "width": 28,
    "height": 23,
    "type": "MAP_TYPE_ROUTE",
-   "anchor": [
-    536,
-    266
-   ]
+   "coordinates": [
+    599,
+    275
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_SKY_PILLAR_1F",
@@ -3889,10 +3926,11 @@
    "width": 14,
    "height": 14,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    536,
-    266
-   ]
+   "coordinates": [
+    600,
+    260
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_SKY_PILLAR_2F",
@@ -3902,10 +3940,11 @@
    "width": 14,
    "height": 14,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    536,
-    266
-   ]
+   "coordinates": [
+    597,
+    245
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_SKY_PILLAR_3F",
@@ -3915,10 +3954,11 @@
    "width": 14,
    "height": 14,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    536,
-    266
-   ]
+   "coordinates": [
+    587,
+    230
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_SKY_PILLAR_4F",
@@ -3928,10 +3968,11 @@
    "width": 14,
    "height": 14,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    536,
-    266
-   ]
+   "coordinates": [
+    585,
+    215
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_SHOAL_CAVE_LOW_TIDE_ICE_ROOM",
@@ -3941,10 +3982,11 @@
    "width": 20,
    "height": 30,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    662,
-    79
-   ]
+   "coordinates": [
+    684,
+    4
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_SKY_PILLAR_5F",
@@ -3954,10 +3996,11 @@
    "width": 14,
    "height": 14,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    536,
-    266
-   ]
+   "coordinates": [
+    575,
+    200
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_SKY_PILLAR_TOP",
@@ -3967,10 +4010,11 @@
    "width": 27,
    "height": 24,
    "type": "MAP_TYPE_ROUTE",
-   "anchor": [
-    536,
-    266
-   ]
+   "coordinates": [
+    559,
+    175
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_MAGMA_HIDEOUT_1F",
@@ -3980,10 +4024,11 @@
    "width": 37,
    "height": 38,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    166,
-    66
-   ]
+   "coordinates": [
+    104,
+    135
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_MAGMA_HIDEOUT_2F_1R",
@@ -3993,10 +4038,11 @@
    "width": 33,
    "height": 39,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    166,
-    66
-   ]
+   "coordinates": [
+    102,
+    195
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_MAGMA_HIDEOUT_2F_2R",
@@ -4006,10 +4052,11 @@
    "width": 49,
    "height": 28,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    166,
-    66
-   ]
+   "coordinates": [
+    11,
+    111
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_MAGMA_HIDEOUT_3F_1R",
@@ -4019,10 +4066,11 @@
    "width": 28,
    "height": 24,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    166,
-    66
-   ]
+   "coordinates": [
+    102,
+    235
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_MAGMA_HIDEOUT_3F_2R",
@@ -4032,10 +4080,11 @@
    "width": 24,
    "height": 17,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    166,
-    66
-   ]
+   "coordinates": [
+    102,
+    260
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_MAGMA_HIDEOUT_4F",
@@ -4045,10 +4094,11 @@
    "width": 59,
    "height": 28,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    166,
-    66
-   ]
+   "coordinates": [
+    131,
+    235
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_MAGMA_HIDEOUT_3F_3R",
@@ -4058,10 +4108,11 @@
    "width": 33,
    "height": 24,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    166,
-    66
-   ]
+   "coordinates": [
+    132,
+    264
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_MAGMA_HIDEOUT_2F_3R",
@@ -4071,10 +4122,11 @@
    "width": 60,
    "height": 19,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    166,
-    66
-   ]
+   "coordinates": [
+    0,
+    140
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_MIRAGE_TOWER_1F",
@@ -4084,10 +4136,11 @@
    "width": 21,
    "height": 17,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    219,
-    58
-   ]
+   "coordinates": [
+    302,
+    89
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_MIRAGE_TOWER_2F",
@@ -4097,10 +4150,11 @@
    "width": 21,
    "height": 17,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    219,
-    58
-   ]
+   "coordinates": [
+    302,
+    71
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_MIRAGE_TOWER_3F",
@@ -4110,10 +4164,11 @@
    "width": 21,
    "height": 17,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    219,
-    58
-   ]
+   "coordinates": [
+    302,
+    53
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_MIRAGE_TOWER_4F",
@@ -4123,10 +4178,11 @@
    "width": 13,
    "height": 10,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    219,
-    58
-   ]
+   "coordinates": [
+    302,
+    42
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_DESERT_UNDERPASS",
@@ -4137,8 +4193,8 @@
    "height": 23,
    "type": "MAP_TYPE_UNDERGROUND",
    "anchor": [
-    69,
-    7
+    130,
+    59
    ]
   },
   {
@@ -4194,10 +4250,11 @@
    "width": 20,
    "height": 20,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    141,
-    12
-   ]
+   "coordinates": [
+    183,
+    31
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_TERRA_CAVE_END",
@@ -4207,10 +4264,11 @@
    "width": 27,
    "height": 30,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    141,
-    12
-   ]
+   "coordinates": [
+    171,
+    0
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_ALTERING_CAVE",
@@ -4220,10 +4278,11 @@
    "width": 32,
    "height": 24,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    165,
-    226
-   ]
+   "coordinates": [
+    195,
+    247
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_METEOR_FALLS_STEVENS_CAVE",
@@ -4233,10 +4292,11 @@
    "width": 30,
    "height": 32,
    "type": "MAP_TYPE_UNDERGROUND",
-   "anchor": [
-    48,
-    65
-   ]
+   "coordinates": [
+    70,
+    47
+   ],
+   "beside_door": true
   },
   {
    "id": "MAP_SECRET_BASE_RED_CAVE1",
@@ -4472,8 +4532,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    126,
-    258
+    187,
+    310
    ]
   },
   {
@@ -4791,8 +4851,8 @@
    "height": 12,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    126,
-    258
+    187,
+    310
    ]
   },
   {
@@ -4831,8 +4891,8 @@
    "height": 40,
    "type": "MAP_TYPE_ROUTE",
    "anchor": [
-    437,
-    85
+    498,
+    137
    ]
   },
   {
@@ -5348,8 +5408,8 @@
    "height": 17,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    231,
-    113
+    292,
+    165
    ]
   },
   {
@@ -5361,8 +5421,8 @@
    "height": 21,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    231,
-    113
+    292,
+    165
    ]
   },
   {
@@ -5374,8 +5434,8 @@
    "height": 21,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    231,
-    113
+    292,
+    165
    ]
   },
   {
@@ -5387,8 +5447,8 @@
    "height": 21,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    231,
-    113
+    292,
+    165
    ]
   },
   {
@@ -5400,8 +5460,8 @@
    "height": 21,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    231,
-    113
+    292,
+    165
    ]
   },
   {
@@ -5413,8 +5473,8 @@
    "height": 16,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    231,
-    113
+    292,
+    165
    ]
   },
   {
@@ -5624,8 +5684,8 @@
    "height": 7,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    231,
-    113
+    292,
+    165
    ]
   },
   {
@@ -5655,8 +5715,8 @@
    "height": 10,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    212,
-    325
+    273,
+    377
    ]
   },
   {
@@ -5668,8 +5728,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    211,
-    226
+    272,
+    278
    ]
   },
   {
@@ -5681,8 +5741,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    211,
-    226
+    272,
+    278
    ]
   },
   {
@@ -5694,8 +5754,8 @@
    "height": 24,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    211,
-    226
+    272,
+    278
    ]
   },
   {
@@ -5707,8 +5767,8 @@
    "height": 22,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    211,
-    226
+    272,
+    278
    ]
   },
   {
@@ -5783,8 +5843,8 @@
    "height": 6,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    216,
-    248
+    277,
+    300
    ]
   },
   {
@@ -5796,8 +5856,8 @@
    "height": 6,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    215,
-    176
+    276,
+    228
    ]
   },
   {
@@ -5809,8 +5869,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    133,
-    5
+    194,
+    57
    ]
   },
   {
@@ -5822,8 +5882,8 @@
    "height": 8,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    342,
-    146
+    403,
+    198
    ]
   },
   {
@@ -5835,8 +5895,8 @@
    "height": 13,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    286,
-    32
+    347,
+    84
    ]
   },
   {
@@ -5848,8 +5908,8 @@
    "height": 11,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    286,
-    32
+    347,
+    84
    ]
   },
   {
@@ -5861,8 +5921,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    313,
-    109
+    374,
+    161
    ]
   },
   {
@@ -5874,8 +5934,8 @@
    "height": 9,
    "type": "MAP_TYPE_INDOOR",
    "anchor": [
-    630,
-    108
+    691,
+    160
    ]
   }
  ]

@@ -7,6 +7,7 @@ in map_data.json. Here it is computed:
 
   * outdoor maps: breadth-first walk over map.json `connections` from Littleroot,
     each neighbour placed by its edge direction and offset
+  * warp-reached routes and caves (Petalburg Woods): full size, in the nearest free space beside their door
   * indoor maps: anchored at the outdoor door tile that warps into them
     (`anchor`), so an agent inside a building shows up at that building's door
 
@@ -17,8 +18,29 @@ Usage:
 
 import json
 import sys
+
+import numpy as np
 from collections import deque
 from pathlib import Path
+
+
+def free_spot(door, m, pos, maps, gap=1, pad=200):
+    """Origin closest to `door` where an m-sized map overlaps no placed map (with a `gap` tile margin)."""
+    x0 = min(p[0] for p in pos.values()) - pad
+    y0 = min(p[1] for p in pos.values()) - pad
+    x1 = max(p[0] + maps[k]["width"] for k, p in pos.items()) + pad
+    y1 = max(p[1] + maps[k]["height"] for k, p in pos.items()) + pad
+    occ = np.zeros((y1 - y0, x1 - x0), np.int32)
+    for k, (px, py) in pos.items():
+        occ[py - y0 - gap:py - y0 + maps[k]["height"] + gap, px - x0 - gap:px - x0 + maps[k]["width"] + gap] = 1
+    S = np.pad(occ.cumsum(0).cumsum(1), ((1, 0), (1, 0)))
+    W, H = m["width"], m["height"]
+    oy, ox = np.mgrid[0:occ.shape[0] - H + 1, 0:occ.shape[1] - W + 1]
+    free = (S[oy + H, ox + W] - S[oy, ox + W] - S[oy + H, ox] + S[oy, ox]) == 0
+    dx, dy = door[0] - x0, door[1] - y0
+    dist = np.maximum(np.maximum(ox - dx, dx - (ox + W - 1)), 0) + np.maximum(np.maximum(oy - dy, dy - (oy + H - 1)), 0)
+    i = np.argmin(np.where(free, dist, 10**9))
+    return int(ox.flat[i] + x0), int(oy.flat[i] + y0)
 
 
 def main(decomp, out):
@@ -72,6 +94,23 @@ def main(decomp, out):
                 pos[nb["id"]] = p
                 q.append(nb["id"])
 
+    # warp-reached routes and caves (Petalburg Woods, tunnels) are bigger inside than the overworld gap
+    # they fill, so they can't line up with both doors. Draw them full size in the nearest free space
+    # beside the door that leads in, as Red's map does with Viridian Forest.
+    beside_door = set()
+    changed = True
+    while changed:
+        changed = False
+        for m in list(maps.values()):
+            if m["id"] not in pos:
+                continue
+            for w in m["warps"]:
+                nb = maps.get(w["dest_map"])
+                if nb and nb["type"] in ("MAP_TYPE_ROUTE", "MAP_TYPE_UNDERGROUND") and nb["id"] not in pos:
+                    pos[nb["id"]] = free_spot((pos[m["id"]][0] + w["x"], pos[m["id"]][1] + w["y"]), nb, pos, maps)
+                    beside_door.add(nb["id"])
+                    changed = True
+
     # indoor maps: anchor at the door of an already placed map that warps into them
     anchor = {}
     changed = True
@@ -98,6 +137,8 @@ def main(decomp, out):
         e = {k: m[k] for k in ("id", "name", "bank", "num", "width", "height", "type")}
         if m["id"] in pos:
             e["coordinates"] = [pos[m["id"]][0] - minx, pos[m["id"]][1] - miny]
+            if m["id"] in beside_door:
+                e["beside_door"] = True  # not part of the overworld picture; visuals draw it only if visited
         elif m["id"] in anchor:
             e["anchor"] = [anchor[m["id"]][0] - minx, anchor[m["id"]][1] - miny]
         out_maps.append(e)
@@ -107,7 +148,7 @@ def main(decomp, out):
     Path(out).parent.mkdir(parents=True, exist_ok=True)
     Path(out).write_text(json.dumps({"world_tiles": [w, h], "maps": out_maps}, indent=1))
 
-    print(f"{len(maps)} maps | {len(pos)} stitched outdoors | {len(anchor)} anchored indoors | "
+    print(f"{len(maps)} maps | {len(pos)} placed full size (stitched or beside their door) | {len(anchor)} anchored indoors | "
           f"{len(maps) - len(pos) - len(anchor)} unplaced | world {w}x{h} tiles")
     for c in conflicts[:10]:
         print("conflict:", c)

@@ -4,9 +4,15 @@ One step = press one of 7 buttons for 8 frames, release for 16, then look.
 The agent sees a 120x80 grayscale screen (last 3 frames) plus a 4th channel
 marking tiles it has already walked on, and a small vector of RAM facts.
 Rewards are "best so far" scores, so nothing can be farmed by repetition.
+
+Milestones (the PokeAgent Challenge route, read from game flags and maps) are both rewarded once
+and shown to the agent as a vector, so it knows which part of the story it is in (the Hamburg
+PokeRunners approach). With swarm_dir set, the first env to reach a milestone saves its state
+there, and later episodes start from the furthest saved state (swarming).
 """
 
 import json
+import os
 from collections import deque
 from pathlib import Path
 
@@ -33,6 +39,25 @@ FLAG_BYTES = slice(0x50 // 8, 0x920 // 8)  # script + trainer + system flags; sk
 BADGE_FLAGS = range(0x867, 0x86F)
 TOWN_FLAGS = range(0x86F, 0x87F)  # FLAG_VISITED_LITTLEROOT_TOWN .. EVER_GRANDE_CITY
 
+MILESTONES = [  # official route (sethkarten/pokeagent-speedrun) from our start state, plus Pokemon Centers
+    ("OLDALE_TOWN", "map", (0, 10)),
+    ("OLDALE_POKEMON_CENTER", "map", (2, 2)),
+    ("ROUTE_103", "map", (0, 18)),
+    ("RIVAL_BATTLE_WON", "flag", (0x500 + 529, 0x500 + 532, 0x500 + 535)),  # May's trainer flag, one per starter
+    ("RECEIVED_POKEDEX", "flag", (0x861,)),
+    ("ROUTE_102", "map", (0, 17)),
+    ("PETALBURG_CITY", "map", (0, 0)),
+    ("PETALBURG_POKEMON_CENTER", "map", (8, 4)),
+    ("DAD_FIRST_MEETING", "map", (8, 1)),  # Petalburg Gym
+    ("ROUTE_104", "map", (0, 19)),
+    ("PETALBURG_WOODS", "map", (24, 11)),
+    ("TEAM_AQUA_GRUNT_DEFEATED", "flag", (0x500 + 10,)),
+    ("RUSTBORO_CITY", "map", (0, 3)),
+    ("RUSTBORO_POKEMON_CENTER", "map", (11, 5)),
+    ("RUSTBORO_GYM_ENTERED", "map", (11, 3)),
+    ("STONE_BADGE", "flag", (0x867,)),
+]
+
 SCREEN_TILES = (10, 15)  # GBA screen = 15 x 10 tiles of 16 px
 PLAYER_TILE = (5, 7)  # (row, col) of the player's tile on screen; checked in tests/test_env.py
 
@@ -45,8 +70,9 @@ DEFAULT_WEIGHTS = {
     "level": 0.5,  # per party level gained (full value to +15, then 1/4)
     "badge": 5.0,
     "town": 2.0,  # per "visited town" flag, on top of its event flag
-    "options": 0.1,  # refundable penalty while game options differ from the start state
-    "stuck": 0.025,  # per step standing on a tile visited more than 600 times (as in Red)
+    "milestone": 5.0,  # per milestone reached for the first time this episode
+    "options": 1.0,  # refundable penalty while game options differ from the start state
+    "stuck": 0.0,  # per step on a tile visited 600+ times (Red); off: Hamburg found negative rewards made agents timid
 }
 
 
@@ -89,7 +115,7 @@ def _memory(core, region):
 
 class EmeraldEnv(gym.Env):
     def __init__(self, rom="Emerald.gba", init_state="states/01_mudkip.state", max_steps=20_480,
-                 weights=None, log_dir=None, env_id=0):
+                 weights=None, log_dir=None, env_id=0, swarm_dir=None, swarm_explore=0.25):
         silence_logs()
         self.core = mgba.core.load_path(str(rom))
         no_python_callbacks(self.core)
@@ -101,15 +127,18 @@ class EmeraldEnv(gym.Env):
         self.frame = np.frombuffer(ffi.buffer(self.img.buffer), np.uint8).reshape(160, 240, 4)
 
         self.init_state = Path(init_state)
-        self.state_bytes = bytearray(self.init_state.read_bytes())
         self.max_steps = max_steps
         self.w = {**DEFAULT_WEIGHTS, **(weights or {})}
         self.env_id = env_id
+        self.swarm_dir = Path(swarm_dir) if swarm_dir else None
+        self.swarm_explore = swarm_explore  # share of episodes starting from a random earlier swarm state
+        if self.swarm_dir:
+            self.swarm_dir.mkdir(parents=True, exist_ok=True)
 
         self.action_space = gym.spaces.Discrete(len(ACTIONS))
         self.observation_space = gym.spaces.Dict({
             "screen": gym.spaces.Box(0, 255, (80, 120, 4), np.uint8),  # 3 stacked frames + visited mask
-            "stats": gym.spaces.Box(0, 1, (22,), np.float32),
+            "stats": gym.spaces.Box(0, 1, (22 + len(MILESTONES),), np.float32),
         })
 
         self.log = None
@@ -119,6 +148,10 @@ class EmeraldEnv(gym.Env):
             self.episodes = open(Path(log_dir) / f"env{env_id:03d}.episodes.csv", "a")
         self.rows = []
         self.total_steps = 0
+        # our game settings, from the original start state (swarm states may have them changed)
+        self.core.load_raw_state(ffi.from_buffer(bytearray(self.init_state.read_bytes())))
+        self.core.run_frame()
+        self.start_options = self._read_raw()["options"]
 
     # ---- RAM ---------------------------------------------------------------------------------
 
@@ -164,27 +197,55 @@ class EmeraldEnv(gym.Env):
             "towns": sum(flag(i) for i in TOWN_FLAGS),
             "levels": levels, "hp": hp, "max_hp": max_hp,
             "options": self._u32(ew, sb2 + SB2_OPTIONS) & 0xFFFF,
+            "milestones_now": {i for i, (_, kind, v) in enumerate(MILESTONES)
+                               if (kind == "map" and (int(bank), int(num)) == v) or (kind == "flag" and any(map(flag, v)))},
         }
 
     # ---- gym API -----------------------------------------------------------------------------
 
+    def _pick_start(self):
+        """(state path, milestones already reached). Swarming: usually the furthest saved state,
+        sometimes a random earlier one so earlier parts of the route aren't forgotten."""
+        options = [(self.init_state, set())]
+        if self.swarm_dir:
+            for meta in sorted(self.swarm_dir.glob("*.json")):
+                options.append((meta.with_suffix(".state"), set(json.loads(meta.read_text()))))
+        if len(options) > 1 and self.np_random.random() < self.swarm_explore:
+            return options[self.np_random.integers(len(options))]
+        return max(options, key=lambda o: len(o[1]))
+
+    def _save_swarm(self, new):
+        """First env to reach a milestone saves its state for everyone (written atomically)."""
+        state = bytes(ffi.buffer(self.core.save_raw_state()))
+        for i in new:
+            base = self.swarm_dir / f"m{i:02d}_{MILESTONES[i][0]}"
+            if base.with_suffix(".json").exists():
+                continue
+            for suffix, data in ((".state", state), (".json", json.dumps(sorted(self.milestones)).encode())):
+                tmp = base.with_suffix(f"{suffix}.tmp{self.env_id}")
+                tmp.write_bytes(data)
+                os.replace(tmp, base.with_suffix(suffix))  # .json last: a state is only visible once complete
+
     def reset(self, *, seed=None, options=None):
         super().reset(seed=seed)
-        self.core.load_raw_state(ffi.from_buffer(self.state_bytes))
+        start_path, self.milestones = self._pick_start()
+        self.core.load_raw_state(ffi.from_buffer(bytearray(Path(start_path).read_bytes())))
         self.core.run_frame()
         self.step_count = 0
         self.visits = {}  # (bank, num, x, y) -> times stood there
         self.frames = deque([self._small_screen()] * 3, maxlen=3)
         s = self.read()
+        self.milestones |= s["milestones_now"]
         self.start = {"flags_set": s["flags_set"], "level_sum": int(s["levels"].sum()),
-                      "options": s["options"], "badges": sum(s["badges"]), "towns": s["towns"]}
+                      "options": self.start_options, "badges": sum(s["badges"]), "towns": s["towns"],
+                      "milestones": len(self.milestones)}
         self.best = {"flags": 0, "level": 0}
         self.stuck_total = 0.0
         self._visit(s)
         self.scores = self._scores(s)
         self.prev_total = sum(self.scores.values())
         if self.log:
-            self.episodes.write(f"{self.total_steps},{self.init_state}\n")  # step offset where it began
+            self.episodes.write(f"{self.total_steps},{start_path}\n")  # step offset where it began, and from which state
         return self._obs(s), {}
 
     def press(self, action, on_frame=None):
@@ -206,6 +267,11 @@ class EmeraldEnv(gym.Env):
         if self.visits.get(self._key(s), 0) > 600:
             self.stuck_total += self.w["stuck"]
         self._visit(s)
+        new = s["milestones_now"] - self.milestones
+        if new:
+            self.milestones |= new
+            if self.swarm_dir:
+                self._save_swarm(new)
         self.scores = self._scores(s)
         total = sum(self.scores.values())
         reward, self.prev_total = total - self.prev_total, total
@@ -239,6 +305,7 @@ class EmeraldEnv(gym.Env):
             "level": w["level"] * self.best["level"],
             "badge": w["badge"] * (sum(s["badges"]) - self.start["badges"]),
             "town": w["town"] * (s["towns"] - self.start["towns"]),
+            "milestone": w["milestone"] * (len(self.milestones) - self.start["milestones"]),
             "options": -w["options"] * (s["options"] != self.start["options"]),
             "stuck": -self.stuck_total,
         }
@@ -264,12 +331,13 @@ class EmeraldEnv(gym.Env):
 
     def _obs(self, s):
         n = len(s["levels"])
-        stats = np.zeros(22, np.float32)
+        stats = np.zeros(22 + len(MILESTONES), np.float32)
         stats[:n] = s["levels"] / 100
         stats[6:6 + n] = s["hp"] / np.maximum(s["max_hp"], 1)
         stats[12:20] = s["badges"]
         stats[20] = s["options"] == self.start["options"]
         stats[21] = n / 6
+        stats[22 + np.array(sorted(self.milestones), int)] = 1  # where am I in the story (Hamburg's milestone vector)
         return {"screen": np.stack([*self.frames, self._visited_mask(s)], axis=-1), "stats": stats}
 
     # ---- logging -----------------------------------------------------------------------------
@@ -295,6 +363,7 @@ class EmeraldEnv(gym.Env):
         return {**{f"reward/{k}": v for k, v in self.scores.items()},
                 "tiles": len(self.visits), "flags": self.best["flags"], "badges": sum(s["badges"]),
                 "towns": s["towns"], "level_sum": int(s["levels"].sum()),
+                "milestones": len(self.milestones), "furthest_milestone": max(self.milestones, default=-1),
                 "map_bank": s["map"][0], "map_num": s["map"][1]}
 
     def render(self):

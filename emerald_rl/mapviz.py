@@ -143,8 +143,18 @@ def to_global(rows):
     return gx, gy
 
 
-def load_run(run):
-    return {int(p.stem[3:]): np.fromfile(p, EmeraldEnv.LOG_DTYPE) for p in sorted((Path(run) / "logs").glob("env*.bin"))}
+def load_run(run, envs=None):
+    logs = {int(p.stem[3:]): np.fromfile(p, EmeraldEnv.LOG_DTYPE) for p in sorted((Path(run) / "logs").glob("env*.bin"))}
+    return {e: r for e, r in logs.items() if envs is None or e in envs}
+
+
+def episode_rows(run, env, rows, episode):
+    starts = [int(l.split(",")[0]) for l in (Path(run) / "logs" / f"env{env:03d}.episodes.csv").read_text().split()]
+    return rows[starts[episode]:starts[episode + 1] if episode + 1 < len(starts) else len(rows)]
+
+
+def _tag(envs, episode):
+    return (f"_env{'-'.join(map(str, envs))}" if envs else "") + (f"_ep{episode}" if episode is not None else "")
 
 
 def crop_box(gx, gy, margin=5):
@@ -156,9 +166,11 @@ def crop_box(gx, gy, margin=5):
 
 # ---- outputs ------------------------------------------------------------------------------
 
-def heatmap(run, last=None):
+def heatmap(run, last=None, envs=None, episode=None):
     """Every visited tile, coloured by how often agents stood there (log scale), over the map."""
-    logs = load_run(run)
+    logs = load_run(run, envs)
+    if episode is not None:
+        logs = {e: episode_rows(run, e, r, episode) for e, r in logs.items()}
     gx, gy = map(np.concatenate, zip(*(to_global(r[-last:] if last else r) for r in logs.values())))
     box = crop_box(gx, gy)
     bg = world(box).astype(np.float32) * 0.55
@@ -170,7 +182,7 @@ def heatmap(run, last=None):
     alpha = np.where(counts > 0, 0.35 + 0.55 * heat, 0)[..., None]
     up = lambda a: a.repeat(T, 0).repeat(T, 1)
     img = (bg * (1 - up(alpha)) + up(colour) * up(alpha)).astype(np.uint8)
-    out = Path(run) / "map" / (f"heatmap_last{last}.png" if last else "heatmap.png")
+    out = Path(run) / "map" / (f"heatmap{_tag(envs, episode)}" + (f"_last{last}" if last else "") + ".png")
     out.parent.mkdir(exist_ok=True)
     Image.fromarray(img).save(out)
     print(f"{out}: {int(ok.sum())} steps from {len(logs)} envs, {int((counts > 0).sum())} tiles visited")
@@ -193,21 +205,17 @@ def _sprite(facing, moving, phase):
     return img[:, ::-1] if facing == 3 else img
 
 
-def walkers(run, episode=0, start=0, steps=3000, inter=2, scale=2):
+def walkers(run, episode=0, start=0, steps=3000, inter=2, scale=2, envs=None):
     """Red-style overlay: every env's player sprite walking on the Hoenn map at once, all starting
     from the same episode start, moving smoothly between tiles (inter frames per step)."""
-    logs = load_run(run)
-    pos = {}
-    for e, rows in logs.items():
-        starts = [int(l.split(",")[0]) for l in (Path(run) / "logs" / f"env{e:03d}.episodes.csv").read_text().split()]
-        a = starts[episode] + start
-        pos[e] = to_global(rows[a:a + steps])
+    pos = {e: to_global(episode_rows(run, e, rows, episode)[start:start + steps])
+           for e, rows in load_run(run, envs).items()}
     n = min(len(p[0]) for p in pos.values())
     gx = np.concatenate([p[0][:n] for p in pos.values()])
     gy = np.concatenate([p[1][:n] for p in pos.values()])
     box = crop_box(gx, gy)
     bg = world(box)
-    out = Path(run) / "map" / f"walkers_ep{episode}_s{start}_n{n}.mp4"
+    out = Path(run) / "map" / f"walkers{_tag(envs, episode)}_s{start}_n{n}.mp4"
     out.parent.mkdir(exist_ok=True)
     facing = {e: 0 for e in pos}
     with imageio.get_writer(out, fps=60, codec="libx264", quality=8, macro_block_size=1) as w:
@@ -244,7 +252,8 @@ def main():
     p.add_argument("--last", type=int, help="heatmap: only the last N steps of each env")
     p.add_argument("--start", type=int, default=0)
     p.add_argument("--steps", type=int, default=4000)
-    p.add_argument("--episode", type=int, default=0, help="walkers: episode whose start every env begins from")
+    p.add_argument("--episode", type=int, help="only this episode (walkers default: 0)")
+    p.add_argument("--envs", type=lambda v: [int(x) for x in v.split(",")], help="only these envs, e.g. 0 or 0,3")
     p.add_argument("--inter", type=int, default=2, help="walkers: frames per step (smooth movement between tiles)")
     a = p.parse_args()
     if a.what == "world":
@@ -252,9 +261,9 @@ def main():
         Image.fromarray(world()).save(CACHE / "hoenn.png")
         print(CACHE / "hoenn.png")
     elif a.what == "heatmap":
-        heatmap(a.run, a.last)
+        heatmap(a.run, a.last, a.envs, a.episode)
     else:
-        walkers(a.run, a.episode, a.start, a.steps, a.inter)
+        walkers(a.run, a.episode or 0, a.start, a.steps, a.inter, envs=a.envs)
 
 
 if __name__ == "__main__":

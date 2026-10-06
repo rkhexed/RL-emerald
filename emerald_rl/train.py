@@ -4,7 +4,8 @@
   python -m emerald_rl.train --name first --resume runs/first/ckpt_1000000_steps.zip
   tensorboard --logdir runs        # graphs (forward port 6006 over SSH)
 
-Writes runs/<name>/: checkpoints, tensorboard/, logs/ (per-step map, x, y, action per env).
+Writes runs/<name>/: checkpoints, tensorboard/, logs/ (per-step map, x, y, action per env),
+swarm/ (the state of the first env to reach each milestone; later episodes start from the furthest).
 """
 
 import argparse
@@ -33,8 +34,9 @@ class StatsCallback(BaseCallback):
         return True
 
 
-def make_env(i, run_dir, max_steps, state, weights):
-    return lambda: EmeraldEnv(init_state=state, max_steps=max_steps, weights=weights, log_dir=run_dir / "logs", env_id=i)
+def make_env(i, run_dir, max_steps, state, weights, swarm):
+    return lambda: EmeraldEnv(init_state=state, max_steps=max_steps, weights=weights, log_dir=run_dir / "logs",
+                              env_id=i, swarm_dir=run_dir / "swarm" if swarm else None)
 
 
 def snapshot(run_dir, args):
@@ -60,12 +62,13 @@ def main():
     p.add_argument("--rollout", type=int, default=2048, help="steps per env between PPO updates")
     p.add_argument("--state", default="states/01_mudkip.state", help="start state (copied into the run)")
     p.add_argument("--weights", type=json.loads, default={}, help='reward weight overrides, e.g. \'{"stuck": 0.01}\'')
+    p.add_argument("--no-swarm", dest="swarm", action="store_false", help="always start from --state")
     p.add_argument("--resume")
     a = p.parse_args()
 
     run_dir = Path("runs") / a.name
     state = snapshot(run_dir, a)
-    env = SubprocVecEnv([make_env(i, run_dir, a.episode, state, a.weights) for i in range(a.envs)])
+    env = SubprocVecEnv([make_env(i, run_dir, a.episode, state, a.weights, a.swarm) for i in range(a.envs)])
     if a.resume:
         model = PPO.load(a.resume, env=env, tensorboard_log=str(run_dir / "tensorboard"))
     else:

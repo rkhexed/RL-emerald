@@ -748,8 +748,9 @@ Everything sections 5–9 decided, as code. Each step:
    | level | best party level gain (full to +15, then ¼) | 0.5 per level |
    | badge | badges gained | 5 each |
    | town | "visited town" flags gained | 2 each |
-   | options | −1 while options differ from the start (refunded when fixed) | 0.1 |
-   | stuck | −1 per step on a tile visited 600+ times | 0.025 |
+   | milestone | each milestone of the official route reached this episode | 5 each |
+   | options | −1 while options differ from the start (refunded when fixed) | 1.0 (was 0.1) |
+   | stuck | −1 per step on a tile visited 600+ times | 0 since run03 (was 0.025, then 0.01) |
 
    Because event and level use "best so far", the score can't be pumped by
    doing the same thing twice (`tests/test_env.py` checks the event score never
@@ -766,6 +767,53 @@ Everything sections 5–9 decided, as code. Each step:
 
 An episode is `max_steps` steps (default 20,480); then the env reloads
 `states/01_mudkip.state` and the visited tiles reset, like Red.
+
+### Milestones and swarming (since run03, the Hamburg approach)
+
+**The problem run02 showed:** all 16 agents reached Route 103, one beat May,
+and none went back to Birch's lab for the Pokédex. Walking back pays nothing
+(every tile on the way was already counted), and the agent can't tell "before
+May" from "after May": the same place calls for opposite moves.
+
+**What other Emerald projects did** (research, 2026-10-06):
+
+| project | handling the May → Pokédex errand |
+|---|---|
+| Hamburg PokéRunners (2nd, PokéAgent 2025, pure RL) | learned it, with a 38-bit **milestone vector** as input, "both as a memory component… and as goal-conditioning" |
+| Heatz (1st) | LLM-written scripts per subgoal, distilled into a network (not pure RL) |
+| dvruette's Emerald experiments | learned from a new-game save; reached the 2nd gym |
+| Red original (the video) | skipped it: started with the Pokédex already in hand |
+
+Hamburg also found that **all negative rewards (e.g. step penalties) made the
+agent timid**: "the model reverted to only safe behavior and did not progress".
+Their reward was positive only.
+
+**What we do now:**
+
+1. `MILESTONES` in `env.py`: the official PokéAgent route from our start
+   (Oldale → Route 103 → **beat May** → **Pokédex** → Route 102 → Petalburg →
+   Dad → Route 104 → Petalburg Woods → Aqua grunt → Rustboro → Gym → Stone
+   Badge), plus Pokémon Centers. Story events use the game's own flags
+   (e.g. May's trainer flag `0x500 + 532`, the Pokédex flag `0x861`); places
+   use the map id.
+2. **Milestone vector:** 16 bits in `stats`, so the agent sees which story
+   stage it's in. **Milestone reward:** +5 the first time each is reached in
+   an episode.
+3. **Swarming** (`swarm_dir`): the first env to reach a milestone saves its
+   state to `runs/<name>/swarm/`. New episodes start from the furthest saved
+   state, so one lucky win against May puts everyone just past her. 25% of
+   episodes start from a random earlier state instead, so the earlier route
+   isn't forgotten. Milestones carried in with a swarm state aren't paid
+   again. The episode log records which state each episode started from, so
+   replays still work.
+4. **Stuck penalty off.** The refundable options penalty stays: it's
+   potential-based (it only marks a change and pays back when fixed), unlike a
+   per-step penalty.
+
+`tests/test_env.py::test_milestones_and_swarm` replays run02's May-beating
+game and checks the milestones fire in story order (Oldale step 2,959, Route
+103 at 2,984, May at 10,391), that swarm states are saved, and that a fresh
+episode starts past May without paying for those milestones again.
 
 ### `emerald_rl/train.py`: the training loop
 
@@ -939,3 +987,8 @@ the log is 7 bytes per step, and steps per second.
   and the stuck penalty (−26) still outweighed exploration (+11). Map videos
   switched to Red-style walking sprites from a shared episode start; grid
   panels framed.
+- **2026-10-06 (run02 → run03):** run02 (10M steps, options 1.0, stuck 0.01):
+  all 16 games reach Route 103, Mudkip Lv 8–13, one beat May, none got the
+  Pokédex; blackouts rose to 1.7 per episode. Researched other Emerald RL
+  projects (section 14) and built the Hamburg-style milestone vector, milestone
+  rewards and swarming for run03; stuck penalty off.

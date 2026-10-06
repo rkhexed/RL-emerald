@@ -64,8 +64,11 @@ def grid(paths, out, cols):
         for y in range(rows) for x in range(cols) if y * cols + x < len(paths)
     )
     inputs = [arg for p in paths for arg in ("-i", str(p))]
+    # a 4 px grey frame around each game, so small rooms (drawn on black by the game) stay readable
+    pads = "".join(f"[{i}:v]pad=iw+8:ih+8:4:4:color=0x3a3a46[p{i}];" for i in range(len(paths)))
+    stack = "".join(f"[p{i}]" for i in range(len(paths)))
     subprocess.run(["ffmpeg", "-v", "error", "-y", *inputs, "-filter_complex",
-                    f"xstack=inputs={len(paths)}:layout={layout}:fill=black", "-c:v", "libx264",
+                    f"{pads}{stack}xstack=inputs={len(paths)}:layout={layout}:fill=black", "-c:v", "libx264",
                     "-crf", "20", "-pix_fmt", "yuv420p", str(out)], check=True)
 
 

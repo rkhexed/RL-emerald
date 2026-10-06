@@ -1,7 +1,7 @@
 """Hoenn map visuals: where every agent walked, on the real game map.
 
   python -m emerald_rl.mapviz heatmap runs/run01            # runs/run01/map/heatmap.png
-  python -m emerald_rl.mapviz trails runs/run01 --steps 4000 --every 4
+  python -m emerald_rl.mapviz walkers runs/run01 --episode 5 --steps 3000
   python -m emerald_rl.mapviz world                          # cache/hoenn.png, the whole stitched overworld
 
 The background is drawn from the pokeemerald decomp (no ROM needed): each map is a grid of
@@ -147,7 +147,7 @@ def load_run(run):
     return {int(p.stem[3:]): np.fromfile(p, EmeraldEnv.LOG_DTYPE) for p in sorted((Path(run) / "logs").glob("env*.bin"))}
 
 
-def crop_box(gx, gy, margin=12):
+def crop_box(gx, gy, margin=5):
     ok = gx >= 0
     W, H = MAPS["world_tiles"]
     return (max(gx[ok].min() - margin, 0), max(gy[ok].min() - margin, 0),
@@ -170,56 +170,82 @@ def heatmap(run, last=None):
     alpha = np.where(counts > 0, 0.35 + 0.55 * heat, 0)[..., None]
     up = lambda a: a.repeat(T, 0).repeat(T, 1)
     img = (bg * (1 - up(alpha)) + up(colour) * up(alpha)).astype(np.uint8)
-    out = Path(run) / "map" / "heatmap.png"
+    out = Path(run) / "map" / (f"heatmap_last{last}.png" if last else "heatmap.png")
     out.parent.mkdir(exist_ok=True)
     Image.fromarray(img).save(out)
     print(f"{out}: {int(ok.sum())} steps from {len(logs)} envs, {int((counts > 0).sum())} tiles visited")
 
 
-def trails(run, start=0, steps=4000, every=4, scale=1):
-    """Video: one coloured dot per env moving over the map, leaving a fading trail."""
+@lru_cache(None)
+def _player_sprites():
+    """Brendan's 9 overworld frames (16x32 RGBA): stand down/up/left, walk down x2, up x2, left x2."""
+    idx = np.array(Image.open(DECOMP / "graphics/object_events/pics/people/brendan/walking.png"))
+    pal = _palette(DECOMP / "graphics/object_events/palettes/brendan.pal")
+    rgba = np.concatenate([pal[idx], np.where(idx == 0, 0, 255)[..., None].astype(np.uint8)], -1)
+    return [rgba[:, i * 16:(i + 1) * 16] for i in range(9)]
+
+
+def _sprite(facing, moving, phase):
+    """facing: 0 down, 1 up, 2 left, 3 right (left mirrored, as the game does)."""
+    frames = _player_sprites()
+    d = 2 if facing == 3 else facing
+    img = frames[3 + 2 * d + phase % 2] if moving else frames[d]
+    return img[:, ::-1] if facing == 3 else img
+
+
+def walkers(run, episode=0, start=0, steps=3000, inter=2, scale=2):
+    """Red-style overlay: every env's player sprite walking on the Hoenn map at once, all starting
+    from the same episode start, moving smoothly between tiles (inter frames per step)."""
     logs = load_run(run)
-    pos = {e: to_global(r[start:start + steps]) for e, r in logs.items()}
-    gx = np.concatenate([p[0] for p in pos.values()])
-    gy = np.concatenate([p[1] for p in pos.values()])
-    box = crop_box(gx, gy)
-    bg = world(box).astype(np.float32) * 0.6
-    hues = np.linspace(0, 1, len(pos), endpoint=False)
-    colours = [np.array(Image.new("HSV", (1, 1), (int(h * 255), 200, 255)).convert("RGB").getpixel((0, 0)))
-               for h in hues]
-    trail = np.zeros(bg.shape[:2], np.float32)
-    trail_rgb = np.zeros(bg.shape, np.float32)
-    out = Path(run) / "map" / f"trails_s{start}_n{steps}.mp4"
-    out.parent.mkdir(exist_ok=True)
+    pos = {}
+    for e, rows in logs.items():
+        starts = [int(l.split(",")[0]) for l in (Path(run) / "logs" / f"env{e:03d}.episodes.csv").read_text().split()]
+        a = starts[episode] + start
+        pos[e] = to_global(rows[a:a + steps])
     n = min(len(p[0]) for p in pos.values())
+    gx = np.concatenate([p[0][:n] for p in pos.values()])
+    gy = np.concatenate([p[1][:n] for p in pos.values()])
+    box = crop_box(gx, gy)
+    bg = world(box)
+    out = Path(run) / "map" / f"walkers_ep{episode}_s{start}_n{n}.mp4"
+    out.parent.mkdir(exist_ok=True)
+    facing = {e: 0 for e in pos}
     with imageio.get_writer(out, fps=60, codec="libx264", quality=8, macro_block_size=1) as w:
-        for i in range(n):
-            trail *= 0.995
-            for (x, y), col in zip(((p[0][i], p[1][i]) for p in pos.values()), colours):
-                if x < 0:
-                    continue
-                py, px = (y - box[1]) * T + T // 2, (x - box[0]) * T + T // 2
-                trail[py - 3:py + 3, px - 3:px + 3] = 1
-                trail_rgb[py - 3:py + 3, px - 3:px + 3] = col
-            if i % every:
-                continue
-            frame = bg * (1 - trail[..., None]) + trail_rgb * trail[..., None]
-            for (x, y), col in zip(((p[0][i], p[1][i]) for p in pos.values()), colours):
-                if x >= 0:
-                    py, px = (y - box[1]) * T + T // 2, (x - box[0]) * T + T // 2
-                    frame[py - 6:py + 6, px - 6:px + 6] = col
-            w.append_data(frame.astype(np.uint8).repeat(scale, 0).repeat(scale, 1))
+        for i in range(1, n):
+            for f in range(inter):
+                frame = bg.copy()
+                t = (f + 1) / inter
+                for e, (xs, ys) in pos.items():
+                    x0, y0, x1, y1 = xs[i - 1], ys[i - 1], xs[i], ys[i]
+                    if x1 < 0:
+                        continue
+                    dx, dy = x1 - x0, y1 - y0
+                    moving = x0 >= 0 and abs(dx) + abs(dy) == 1  # one tile: walk; bigger jump = warp, snap
+                    if moving:
+                        facing[e] = 1 if dy < 0 else 0 if dy > 0 else 2 if dx < 0 else 3
+                        x, y = x0 + dx * t, y0 + dy * t
+                    else:
+                        x, y = x1, y1
+                    spr = _sprite(facing[e], moving, i)
+                    px, py = int((x - box[0]) * T), int((y - box[1]) * T) - T  # 16x32 sprite stands on its tile
+                    if not (0 <= px <= bg.shape[1] - 16 and 0 <= py <= bg.shape[0] - 32):
+                        continue
+                    region = frame[py:py + 32, px:px + 16]
+                    mask = spr[..., 3:] > 0
+                    region[:] = np.where(mask, spr[..., :3], region)
+                w.append_data(frame.repeat(scale, 0).repeat(scale, 1))
     print(out)
 
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("what", choices=["heatmap", "trails", "world"])
+    p.add_argument("what", choices=["heatmap", "walkers", "world"])
     p.add_argument("run", nargs="?")
     p.add_argument("--last", type=int, help="heatmap: only the last N steps of each env")
     p.add_argument("--start", type=int, default=0)
     p.add_argument("--steps", type=int, default=4000)
-    p.add_argument("--every", type=int, default=4, help="trails: keep every Nth step as a video frame")
+    p.add_argument("--episode", type=int, default=0, help="walkers: episode whose start every env begins from")
+    p.add_argument("--inter", type=int, default=2, help="walkers: frames per step (smooth movement between tiles)")
     a = p.parse_args()
     if a.what == "world":
         CACHE.mkdir(exist_ok=True)
@@ -228,7 +254,7 @@ def main():
     elif a.what == "heatmap":
         heatmap(a.run, a.last)
     else:
-        trails(a.run, a.start, a.steps, a.every)
+        walkers(a.run, a.episode, a.start, a.steps, a.inter)
 
 
 if __name__ == "__main__":

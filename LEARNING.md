@@ -839,9 +839,22 @@ metatiles. Agent positions from the logs are placed with `map_data.json`.
 
 ```bash
 python -m emerald_rl.mapviz heatmap runs/run01             # where all agents stood (log-scaled)
-python -m emerald_rl.mapviz trails runs/run01 --start 14000 --steps 2000 --every 2
+python -m emerald_rl.mapviz walkers runs/run01 --episode 5 --steps 3000
 python -m emerald_rl.mapviz world                          # the whole stitched overworld
 ```
+
+`walkers` is the Red-style overlay: every game's player sprite (Brendan's
+real frames from the decomp: standing and two walking frames per direction,
+right = left mirrored) walking on the map at once, all **from the same
+episode start**, so the video shows them leaving the lab together and then
+splitting up. Movement is interpolated between tiles (`--inter` frames per
+step), as Red's `BetterMapVis` does. A jump of more than one tile (a door or
+warp) snaps instead of sliding.
+
+**Why the grid's rooms slide around:** indoor maps are smaller than the GBA
+screen, so the game draws black around them and the room moves within the
+screen as the camera follows the player. That's the game, not the video.
+Each game in the grid gets a 4 px grey frame so they're easy to tell apart.
 
 Indoor maps are drawn at their door, so a lot of time inside the lab shows
 up as one hot tile on the lab's door.
@@ -916,6 +929,13 @@ the log is 7 bytes per step, and steps per second.
   First run `run01` started: 16 games, 2M steps, 648 steps/s.
 - **2026-10-06 (visuals):** `replay.py` (full-colour replays with per-step
   checks, grid videos) and `mapviz.py` (Hoenn drawn from the decomp, heatmaps,
-  trails videos). Found and fixed reading RAM mid-save-block-copy (section 14).
+  walker overlay videos). Found and fixed reading RAM mid-save-block-copy (section 14).
   First `run01` episode stats: the stuck penalty averaged −80.5 per episode,
   against +2.6 for exploration.
+- **2026-10-06 (run01 results):** 2M steps in ~70 min. Average tiles per
+  episode 130 → 557 (best 820); best games reached Oldale and Route 103 (the
+  correct route, since Route 102 is blocked until the Pokédex). Every game
+  ended its episodes with the options changed (the −0.1 penalty was too weak),
+  and the stuck penalty (−26) still outweighed exploration (+11). Map videos
+  switched to Red-style walking sprites from a shared episode start; grid
+  panels framed.

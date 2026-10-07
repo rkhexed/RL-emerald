@@ -86,6 +86,27 @@ def test_milestones_and_swarm():
         assert fresh.milestones == {m for m, _ in order}, "should start from the furthest swarm state"
         assert fresh.scores["milestone"] == 0, "milestones carried in from the swarm state are not paid again"
         assert obs["stats"][22 + MILESTONES.index(next(m for m in MILESTONES if m[0] == "RIVAL_BATTLE_WON"))] == 1
+        assert fresh.read()["options"] == fresh.start_options, "swarm states are saved with our game settings"
+        assert len(fresh.visits) == fresh.start["tiles"] > 100, "explored tiles come with the swarm state"
+        assert fresh.scores["explore"] == 0, "inherited tiles are not paid again"
+
+
+def test_counters():
+    """run03 env 12 episode 29 entered Rustboro Gym and blacked out there; skipped if not on disk."""
+    from emerald_rl.replay import load_episode
+    if not os.path.exists("runs/run03/logs/env012.bin"):
+        print("  skipped: needs runs/run03")
+        return
+    rows, state = load_episode("runs/run03", 12, 29)
+    env = EmeraldEnv(init_state=state, max_steps=10**6)
+    env.reset()
+    for row in rows:
+        env.step(int(row["action"]))
+    st = env.stats()
+    print(f"  battles {st['battles']}, blackouts {st['blackouts']}, steps moved/battle/locked/idle "
+          f"{st['steps/moved']:.2f}/{st['steps/battle']:.2f}/{st['steps/locked']:.2f}/{st['steps/idle']:.2f}")
+    assert st["blackouts"] >= 1 and st["battles"] > 0 and env.scores["blackout"] < 0
+    assert abs(sum(st[f"steps/{k}"] for k in ("moved", "battle", "locked", "idle")) - 1) < 1e-6
 
 
 def test_speed():

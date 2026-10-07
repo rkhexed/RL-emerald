@@ -815,6 +815,31 @@ game and checks the milestones fire in story order (Oldale step 2,959, Route
 103 at 2,984, May at 10,391), that swarm states are saved, and that a fresh
 episode starts past May without paying for those milestones again.
 
+### run03 analysis → run04 changes
+
+run03 reached Rustboro Gym (15 of 16 milestones), but replaying its games
+with game-memory markers (`gMain.inBattle`, `sLockFieldControls`, and the
+part of the game's code that's running) showed where the time went:
+
+| finding | evidence | run04 change |
+|---|---|---|
+| swarm states inherited broken settings | every state from May on: MID, then SLOW text | swarm states are saved with our settings (the saving game's own episode is untouched) |
+| exploration paid for walking backwards | Rustboro-start games walked back to Littleroot; tiles counted per episode | swarm states save the tiles explored on the way there (`.tiles.npy`); only new ground pays |
+| 76% of steps free to move but standing still | 41% of those presses RIGHT into walls | inputs: last 4 buttons, steps since last moved, in-battle flag |
+| evolution cancelled | still Mudkip at Lv 16–17 (evolves at 16 into Marshtomp, which learns Mud Shot) | +5 per evolution (a party member's species changes) |
+| never caught anything | Poké Balls in the bag since Petalburg, party always 1 | +2 per new Pokémon in the party |
+| frequent blackouts | 1.7 per episode in run02; the gym attempt ended in one | −1 per blackout (party HP hits 0); watch battles per episode in case it turns timid |
+
+Also every episode now logs, straight to TensorBoard, the share of steps
+spent moving / in battle / locked (dialogue or menu) / idle, plus battles,
+blackouts, party size and evolutions, so this breakdown is automatic for
+every run.
+
+Species is inside the encrypted part of each Pokémon. `read()` decodes it:
+XOR the 48 bytes at offset 32 with `personality ^ otId`, then the growth
+block (which starts with the species) sits at one of 4 positions chosen by
+`personality % 24`. Checked against pygba's decoder.
+
 ### `emerald_rl/train.py`: the training loop
 
 stable-baselines3 PPO with 16 games in separate processes (`SubprocVecEnv`),
@@ -992,3 +1017,7 @@ the log is 7 bytes per step, and steps per second.
   Pokédex; blackouts rose to 1.7 per episode. Researched other Emerald RL
   projects (section 14) and built the Hamburg-style milestone vector, milestone
   rewards and swarming for run03; stuck penalty off.
+- **2026-10-07 (run03 → run04):** run03 reached Rustboro Gym (15/16
+  milestones) in 10M steps. Analysis found the issues above; run04 starts
+  fresh from Mudkip in the lab with all the fixes, 24 games on the resized
+  24-vCPU VM.

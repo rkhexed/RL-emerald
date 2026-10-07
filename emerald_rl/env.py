@@ -31,6 +31,8 @@ ACTION_NAMES = list(ACTIONS)
 SAVEBLOCK1_PTR = 0x03005D8C  # SaveBlock1 moves around in EWRAM ("DMA protection"); this pointer doesn't
 SAVEBLOCK2_PTR = 0x03005D90
 GMAIN_VBLANK_CB = 0x030022C0 + 0x0C  # gMain.vblankCallback: NULL while the game moves its save blocks
+GMAIN_IN_BATTLE = 0x030022C0 + 0x439  # gMain.inBattle is bit 1 of this byte
+LOCK_FIELD_CONTROLS = 0x03000F2C  # sLockFieldControls: player can't move (dialogue, START menu, cutscene)
 PARTY_COUNT = 0x020244E9
 PARTY = 0x020244EC  # 6 x struct Pokemon (100 bytes); level/HP sit after the encrypted 80-byte box
 SB1_POS, SB1_LOCATION, SB1_FLAGS = 0x00, 0x04, 0x1270
@@ -58,6 +60,12 @@ MILESTONES = [  # official route (sethkarten/pokeagent-speedrun) from our start 
     ("STONE_BADGE", "flag", (0x867,)),
 ]
 
+# struct Pokemon: personality and OT id are plain, the 48 bytes at 32 are 4 substructures XORed
+# with (personality ^ otId) and stored in one of 24 orders picked by personality % 24
+GROWTH_POS = [0, 0, 0, 0, 0, 0, 1, 1, 2, 3, 2, 3, 1, 1, 2, 3, 2, 3, 1, 1, 2, 3, 2, 3]  # where the growth block (species) sits
+RECENT_ACTIONS = 4
+N_STATS = 22 + len(MILESTONES) + RECENT_ACTIONS * len(ACTIONS) + 2  # + steps standing still, in battle
+
 SCREEN_TILES = (10, 15)  # GBA screen = 15 x 10 tiles of 16 px
 PLAYER_TILE = (5, 7)  # (row, col) of the player's tile on screen; checked in tests/test_env.py
 
@@ -71,6 +79,9 @@ DEFAULT_WEIGHTS = {
     "badge": 5.0,
     "town": 2.0,  # per "visited town" flag, on top of its event flag
     "milestone": 5.0,  # per milestone reached for the first time this episode
+    "evolve": 5.0,  # per party member that evolved (cancelling with B gives up this reward)
+    "catch": 2.0,  # per new Pokemon in the party (caught)
+    "blackout": 1.0,  # penalty per blackout (whole party fainted); watch battles/episode for timidity
     "options": 1.0,  # refundable penalty while game options differ from the start state
     "stuck": 0.0,  # per step on a tile visited 600+ times (Red); off: Hamburg found negative rewards made agents timid
 }
@@ -138,7 +149,7 @@ class EmeraldEnv(gym.Env):
         self.action_space = gym.spaces.Discrete(len(ACTIONS))
         self.observation_space = gym.spaces.Dict({
             "screen": gym.spaces.Box(0, 255, (80, 120, 4), np.uint8),  # 3 stacked frames + visited mask
-            "stats": gym.spaces.Box(0, 1, (22 + len(MILESTONES),), np.float32),
+            "stats": gym.spaces.Box(0, 1, (N_STATS,), np.float32),
         })
 
         self.log = None
@@ -184,6 +195,9 @@ class EmeraldEnv(gym.Env):
         n = min(int(ew[PARTY_COUNT - 0x02000000]), 6)
         party = ew[PARTY - 0x02000000:PARTY - 0x02000000 + 600].reshape(6, 100)[:n]
         levels = party[:, 84].astype(int)
+        words = party.copy().view("<u4")  # (n, 25) little-endian words
+        pid, otid = words[:, 0], words[:, 1]
+        species = [int((words[i, 8 + 3 * GROWTH_POS[pid[i] % 24]] ^ pid[i] ^ otid[i]) & 0xFFFF) for i in range(n)]
         hp = party[:, 86:88].copy().view(np.uint16)[:, 0].astype(int)
         max_hp = party[:, 88:90].copy().view(np.uint16)[:, 0].astype(int)
 
@@ -196,6 +210,9 @@ class EmeraldEnv(gym.Env):
             "badges": [flag(i) for i in BADGE_FLAGS],
             "towns": sum(flag(i) for i in TOWN_FLAGS),
             "levels": levels, "hp": hp, "max_hp": max_hp,
+            "party": dict(zip(pid.tolist(), species)),  # personality -> species
+            "in_battle": bool(self.iwram[GMAIN_IN_BATTLE - 0x03000000] >> 1 & 1),
+            "locked": bool(self.iwram[LOCK_FIELD_CONTROLS - 0x03000000]),
             "options": self._u32(ew, sb2 + SB2_OPTIONS) & 0xFFFF,
             "milestones_now": {i for i, (_, kind, v) in enumerate(MILESTONES)
                                if (kind == "map" and (int(bank), int(num)) == v) or (kind == "flag" and any(map(flag, v)))},
@@ -210,18 +227,26 @@ class EmeraldEnv(gym.Env):
         if self.swarm_dir:
             for meta in sorted(self.swarm_dir.glob("*.json")):
                 options.append((meta.with_suffix(".state"), set(json.loads(meta.read_text()))))
+        # each option: (state, milestones); explored tiles live next to the state as .tiles.npy
         if len(options) > 1 and self.np_random.random() < self.swarm_explore:
             return options[self.np_random.integers(len(options))]
         return max(options, key=lambda o: len(o[1]))
 
     def _save_swarm(self, new):
         """First env to reach a milestone saves its state for everyone (written atomically)."""
+        # save with our game settings, so games starting here don't inherit text speed changes
+        opt = self._sb(SAVEBLOCK2_PTR) + SB2_OPTIONS
+        mine = self.ewram[opt:opt + 2].copy()
+        self.ewram[opt:opt + 2] = np.frombuffer(self.start_options.to_bytes(2, "little"), np.uint8)
         state = bytes(ffi.buffer(self.core.save_raw_state()))
+        self.ewram[opt:opt + 2] = mine
+        tiles = np.array([b << 40 | n << 32 | (x & 0xFFFF) << 16 | (y & 0xFFFF) for b, n, x, y in self.visits], np.int64)
         for i in new:
             base = self.swarm_dir / f"m{i:02d}_{MILESTONES[i][0]}"
             if base.with_suffix(".json").exists():
                 continue
-            for suffix, data in ((".state", state), (".json", json.dumps(sorted(self.milestones)).encode())):
+            for suffix, data in ((".state", state), (".tiles.npy", tiles.tobytes()),
+                                 (".json", json.dumps(sorted(self.milestones)).encode())):
                 tmp = base.with_suffix(f"{suffix}.tmp{self.env_id}")
                 tmp.write_bytes(data)
                 os.replace(tmp, base.with_suffix(suffix))  # .json last: a state is only visible once complete
@@ -232,13 +257,25 @@ class EmeraldEnv(gym.Env):
         self.core.load_raw_state(ffi.from_buffer(bytearray(Path(start_path).read_bytes())))
         self.core.run_frame()
         self.step_count = 0
-        self.visits = {}  # (bank, num, x, y) -> times stood there
+        # (bank, num, x, y) -> times stood there; a swarm state brings the tiles explored on the way there,
+        # so only new ground pays (walking back down the route is worth nothing)
+        tiles_file = Path(start_path).with_suffix(".tiles.npy")
+        known = np.fromfile(tiles_file, np.int64) if tiles_file.exists() else []
+        self.visits = {(int(k >> 40), int(k >> 32 & 0xFF), int(np.int16(k >> 16 & 0xFFFF)), int(np.int16(k & 0xFFFF))): 1
+                       for k in known}
+        self.recent = deque([0] * RECENT_ACTIONS, maxlen=RECENT_ACTIONS)
+        self.still = 0  # steps since the player's position last changed
+        self.counts = {"moved": 0, "battle": 0, "locked": 0, "idle": 0, "battles": 0, "blackouts": 0}
         self.frames = deque([self._small_screen()] * 3, maxlen=3)
         s = self.read()
         self.milestones |= s["milestones_now"]
         self.start = {"flags_set": s["flags_set"], "level_sum": int(s["levels"].sum()),
                       "options": self.start_options, "badges": sum(s["badges"]), "towns": s["towns"],
-                      "milestones": len(self.milestones)}
+                      "milestones": len(self.milestones), "tiles": len(self.visits)}
+        self.first_species = dict(s["party"])  # personality -> species when first seen this episode
+        self.start_party = set(s["party"])
+        self.fainted = False
+        self.last_in_battle = s["in_battle"]
         self.best = {"flags": 0, "level": 0}
         self.stuck_total = 0.0
         self._visit(s)
@@ -263,7 +300,21 @@ class EmeraldEnv(gym.Env):
         self.press(action)
         self.frames.append(self._small_screen())
 
+        prev_key = self._key(self.last_read)
         s = self.read()
+        moved = self._key(s) != prev_key
+        self.still = 0 if moved else self.still + 1
+        self.recent.append(action)
+        if s["in_battle"] and not self.last_in_battle:
+            self.counts["battles"] += 1
+        self.last_in_battle = s["in_battle"]
+        self.counts["battle" if s["in_battle"] else "moved" if moved else "locked" if s["locked"] else "idle"] += 1
+        fainted = len(s["hp"]) > 0 and s["hp"].sum() == 0
+        if fainted and not self.fainted:
+            self.counts["blackouts"] += 1
+        self.fainted = fainted
+        for p, sp in s["party"].items():
+            self.first_species.setdefault(p, sp)
         if self.visits.get(self._key(s), 0) > 600:
             self.stuck_total += self.w["stuck"]
         self._visit(s)
@@ -301,11 +352,14 @@ class EmeraldEnv(gym.Env):
         w = self.w
         return {
             "event": w["event"] * self.best["flags"],
-            "explore": w["explore"] * len(self.visits),
+            "explore": w["explore"] * (len(self.visits) - self.start["tiles"]),
             "level": w["level"] * self.best["level"],
             "badge": w["badge"] * (sum(s["badges"]) - self.start["badges"]),
             "town": w["town"] * (s["towns"] - self.start["towns"]),
             "milestone": w["milestone"] * (len(self.milestones) - self.start["milestones"]),
+            "evolve": w["evolve"] * sum(s["party"].get(p, sp) != sp for p, sp in self.first_species.items()),
+            "catch": w["catch"] * len(set(self.first_species) - self.start_party),
+            "blackout": -w["blackout"] * self.counts["blackouts"],
             "options": -w["options"] * (s["options"] != self.start["options"]),
             "stuck": -self.stuck_total,
         }
@@ -331,13 +385,19 @@ class EmeraldEnv(gym.Env):
 
     def _obs(self, s):
         n = len(s["levels"])
-        stats = np.zeros(22 + len(MILESTONES), np.float32)
+        stats = np.zeros(N_STATS, np.float32)
         stats[:n] = s["levels"] / 100
         stats[6:6 + n] = s["hp"] / np.maximum(s["max_hp"], 1)
         stats[12:20] = s["badges"]
         stats[20] = s["options"] == self.start["options"]
         stats[21] = n / 6
         stats[22 + np.array(sorted(self.milestones), int)] = 1  # where am I in the story (Hamburg's milestone vector)
+        o = 22 + len(MILESTONES)
+        for i, a in enumerate(self.recent):  # last buttons pressed, so it can notice repeating itself
+            stats[o + i * len(ACTIONS) + a] = 1
+        o += RECENT_ACTIONS * len(ACTIONS)
+        stats[o] = min(self.still / 200, 1)  # how long it has been standing still
+        stats[o + 1] = s["in_battle"]
         return {"screen": np.stack([*self.frames, self._visited_mask(s)], axis=-1), "stats": stats}
 
     # ---- logging -----------------------------------------------------------------------------
@@ -364,6 +424,9 @@ class EmeraldEnv(gym.Env):
                 "tiles": len(self.visits), "flags": self.best["flags"], "badges": sum(s["badges"]),
                 "towns": s["towns"], "level_sum": int(s["levels"].sum()),
                 "milestones": len(self.milestones), "furthest_milestone": max(self.milestones, default=-1),
+                **{f"steps/{k}": v / max(self.step_count, 1) for k, v in self.counts.items() if k in ("moved", "battle", "locked", "idle")},
+                "battles": self.counts["battles"], "blackouts": self.counts["blackouts"],
+                "party_size": len(s["party"]), "evolutions": sum(s["party"].get(p, sp) != sp for p, sp in self.first_species.items()),
                 "map_bank": s["map"][0], "map_num": s["map"][1]}
 
     def render(self):

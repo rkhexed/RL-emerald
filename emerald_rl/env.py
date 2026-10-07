@@ -63,25 +63,36 @@ MILESTONES = [  # official route (sethkarten/pokeagent-speedrun) from our start 
 # struct Pokemon: personality and OT id are plain, the 48 bytes at 32 are 4 substructures XORed
 # with (personality ^ otId) and stored in one of 24 orders picked by personality % 24
 GROWTH_POS = [0, 0, 0, 0, 0, 0, 1, 1, 2, 3, 2, 3, 1, 1, 2, 3, 2, 3, 1, 1, 2, 3, 2, 3]  # where the growth block (species) sits
+ATTACKS_POS = [1, 1, 2, 3, 2, 3, 0, 0, 0, 0, 0, 0, 2, 3, 1, 1, 3, 2, 2, 3, 1, 1, 3, 2]  # where the attacks block (4 moves) sits
+SB1_LAST_HEAL = 0x1C  # SaveBlock1.lastHealLocation (WarpData): where a blackout sends you; changes when you heal
+SB2_DEX_OWNED, SB2_DEX_SEEN = 0x28, 0x5C  # Pokedex flags, 52 bytes each
 RECENT_ACTIONS = 4
-N_STATS = 22 + len(MILESTONES) + RECENT_ACTIONS * len(ACTIONS) + 2  # + steps standing still, in battle
+POS_FREQS = 6  # global position encoded as sin/cos at 6 frequencies per axis (Hamburg-style)
+N_STATS = 22 + len(MILESTONES) + RECENT_ACTIONS * len(ACTIONS) + 2 + 4 * POS_FREQS
 
 SCREEN_TILES = (10, 15)  # GBA screen = 15 x 10 tiles of 16 px
 PLAYER_TILE = (5, 7)  # (row, col) of the player's tile on screen; checked in tests/test_env.py
 
-MAP_SIZES = {(m["bank"], m["num"]): (m["width"], m["height"])
-             for m in json.loads((Path(__file__).parent / "data/map_data.json").read_text())["maps"]}
+_MAP_DATA = json.loads((Path(__file__).parent / "data/map_data.json").read_text())
+MAP_SIZES = {(m["bank"], m["num"]): (m["width"], m["height"]) for m in _MAP_DATA["maps"]}
+# where each map sits on the global Hoenn grid: (x, y, True) for full maps, (door x, door y, False) for interiors
+MAP_ORIGIN = {(m["bank"], m["num"]): (*m["coordinates"], True) if "coordinates" in m else (*m["anchor"], False)
+              for m in _MAP_DATA["maps"] if "coordinates" in m or "anchor" in m}
+WORLD = _MAP_DATA["world_tiles"]
 
 DEFAULT_WEIGHTS = {
     "event": 1.0,  # per story/trainer/system flag set (most ever, minus flags set at start)
     "explore": 0.02,  # per unique (map bank, map num, x, y) tile visited this episode
-    "level": 0.5,  # per party level gained (full value to +15, then 1/4)
+    "level": 2.0,  # per party level gained (full value to +15, then 1/4); puffer: removing it always failed
     "badge": 5.0,
     "town": 2.0,  # per "visited town" flag, on top of its event flag
     "milestone": 5.0,  # per milestone reached for the first time this episode
     "evolve": 5.0,  # per party member that evolved (cancelling with B gives up this reward)
     "catch": 2.0,  # per new Pokemon in the party (caught)
-    "blackout": 1.0,  # penalty per blackout (whole party fainted); watch battles/episode for timidity
+    "blackout": 0.0,  # penalty per blackout; off: in run04 it taught the agent to run from every battle
+    "seen": 1.0,  # per new species seen (meeting it in battle), as pokemonred_puffer
+    "moves": 2.0,  # per distinct move ever known by the party, as pokemonred_puffer
+    "heal": 1.0,  # per new place healed at (the blackout respawn point changes), as pokemonred_puffer
     "options": 1.0,  # refundable penalty while game options differ from the start state
     "stuck": 0.0,  # per step on a tile visited 600+ times (Red); off: Hamburg found negative rewards made agents timid
 }
@@ -198,6 +209,10 @@ class EmeraldEnv(gym.Env):
         words = party.copy().view("<u4")  # (n, 25) little-endian words
         pid, otid = words[:, 0], words[:, 1]
         species = [int((words[i, 8 + 3 * GROWTH_POS[pid[i] % 24]] ^ pid[i] ^ otid[i]) & 0xFFFF) for i in range(n)]
+        moves = set()
+        for i in range(n):
+            a = words[i, 8 + 3 * ATTACKS_POS[pid[i] % 24]: 8 + 3 * ATTACKS_POS[pid[i] % 24] + 2] ^ (pid[i] ^ otid[i])
+            moves |= {int(a[0] & 0xFFFF), int(a[0] >> 16), int(a[1] & 0xFFFF), int(a[1] >> 16)} - {0}
         hp = party[:, 86:88].copy().view(np.uint16)[:, 0].astype(int)
         max_hp = party[:, 88:90].copy().view(np.uint16)[:, 0].astype(int)
 
@@ -211,6 +226,9 @@ class EmeraldEnv(gym.Env):
             "towns": sum(flag(i) for i in TOWN_FLAGS),
             "levels": levels, "hp": hp, "max_hp": max_hp,
             "party": dict(zip(pid.tolist(), species)),  # personality -> species
+            "moves": moves,
+            "heal": (int(ew[sb1 + SB1_LAST_HEAL]), int(ew[sb1 + SB1_LAST_HEAL + 1])),
+            "seen": int(np.unpackbits(ew[sb2 + SB2_DEX_SEEN:sb2 + SB2_DEX_SEEN + 52]).sum()),
             "in_battle": bool(self.iwram[GMAIN_IN_BATTLE - 0x03000000] >> 1 & 1),
             "locked": bool(self.iwram[LOCK_FIELD_CONTROLS - 0x03000000]),
             "options": self._u32(ew, sb2 + SB2_OPTIONS) & 0xFFFF,
@@ -273,6 +291,8 @@ class EmeraldEnv(gym.Env):
                       "options": self.start_options, "badges": sum(s["badges"]), "towns": s["towns"],
                       "milestones": len(self.milestones), "tiles": len(self.visits)}
         self.first_species = dict(s["party"])  # personality -> species when first seen this episode
+        self.moves_known, self.heals = set(s["moves"]), {s["heal"]}
+        self.start.update(moves=len(self.moves_known), heals=1, seen=s["seen"])
         self.start_party = set(s["party"])
         self.fainted = False
         self.last_in_battle = s["in_battle"]
@@ -315,6 +335,8 @@ class EmeraldEnv(gym.Env):
         self.fainted = fainted
         for p, sp in s["party"].items():
             self.first_species.setdefault(p, sp)
+        self.moves_known |= s["moves"]
+        self.heals.add(s["heal"])
         if self.visits.get(self._key(s), 0) > 600:
             self.stuck_total += self.w["stuck"]
         self._visit(s)
@@ -360,6 +382,9 @@ class EmeraldEnv(gym.Env):
             "evolve": w["evolve"] * sum(s["party"].get(p, sp) != sp for p, sp in self.first_species.items()),
             "catch": w["catch"] * len(set(self.first_species) - self.start_party),
             "blackout": -w["blackout"] * self.counts["blackouts"],
+            "seen": w["seen"] * max(s["seen"] - self.start["seen"], 0),
+            "moves": w["moves"] * (len(self.moves_known) - self.start["moves"]),
+            "heal": w["heal"] * (len(self.heals) - self.start["heals"]),
             "options": -w["options"] * (s["options"] != self.start["options"]),
             "stuck": -self.stuck_total,
         }
@@ -398,6 +423,12 @@ class EmeraldEnv(gym.Env):
         o += RECENT_ACTIONS * len(ACTIONS)
         stats[o] = min(self.still / 200, 1)  # how long it has been standing still
         stats[o + 1] = s["in_battle"]
+        o += 2
+        ox, oy, full = MAP_ORIGIN.get(s["map"], (0, 0, False))  # where am I in Hoenn (Hamburg's global position)
+        gx, gy = (ox + s["x"], oy + s["y"]) if full else (ox, oy)
+        f = 2.0 ** np.arange(POS_FREQS) * np.pi
+        for i, g in enumerate((gx / WORLD[0], gy / WORLD[1])):
+            stats[o + 4 * POS_FREQS // 2 * i: o + 4 * POS_FREQS // 2 * (i + 1)] = (np.r_[np.sin(f * g), np.cos(f * g)] + 1) / 2
         return {"screen": np.stack([*self.frames, self._visited_mask(s)], axis=-1), "stats": stats}
 
     # ---- logging -----------------------------------------------------------------------------
@@ -427,6 +458,7 @@ class EmeraldEnv(gym.Env):
                 **{f"steps/{k}": v / max(self.step_count, 1) for k, v in self.counts.items() if k in ("moved", "battle", "locked", "idle")},
                 "battles": self.counts["battles"], "blackouts": self.counts["blackouts"],
                 "party_size": len(s["party"]), "evolutions": sum(s["party"].get(p, sp) != sp for p, sp in self.first_species.items()),
+                "moves_known": len(self.moves_known), "species_seen": s["seen"], "heal_places": len(self.heals),
                 "map_bank": s["map"][0], "map_num": s["map"][1]}
 
     def render(self):

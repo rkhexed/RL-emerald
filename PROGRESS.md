@@ -14,6 +14,7 @@ swarm states, videos).
 | run02 | Oct 6 2:14 AM – 8:05 AM | 10M | 16 | weaker stuck penalty, stronger options penalty | beat May (1 game) |
 | run03 | Oct 6 12:17 PM – 6:10 PM | 10M | 16 | milestones + swarming (Hamburg approach) | **inside Rustboro Gym** (15/16 milestones) |
 | run04 | Oct 7 12:49 AM – 1:24 PM (stopped) | 29M | 24 | fixes from run03's analysis, evolve/catch rewards, blackout penalty | beat the Aqua grunt (12/16); **ran from battles** |
+| run05 | Oct 7 (10M diagnostic) | 10M | 24 | fight instead of flee: no blackout penalty, level ×4, seen/moves/heal rewards, global position input | in progress |
 
 Every run starts from `states/01_mudkip.state` (Birch's lab, Mudkip Lv 5),
 with 7 buttons (↑ ↓ ← → A B START), one decision every 24 frames, and
@@ -205,3 +206,34 @@ one catch; no collapse in battles per episode; the Stone Badge.
 **Proposed for run05:** keep every run04 fix except the blackout penalty;
 **remove the blackout penalty**, and make winning worth more than running
 (a bigger level reward, so experience pays for the steps a battle costs).
+
+---
+
+## run05: fight instead of flee (in progress)
+
+A 10M-step diagnostic run, from Mudkip in the lab, 24 games. Everything from
+run04 stays except the blackout penalty.
+
+**Research before run05** (pokemonred_puffer's write-up and config, Hamburg):
+- puffer on the level reward: "Any attempt to remove the reward led to a failed experiment."
+- puffer paid for **new species seen** (+2.2), **new moves learned** (+4.1)
+  and a **Pokémon Center heal** (+0.75); rewarding A presses made agents spam A.
+- Hamburg fed the agent its **global position** (sinusoidal x, y + location)
+  to avoid spatial ambiguity, and found negative rewards made agents timid
+  (confirmed by run04).
+
+**Reward changes**
+
+| term | run04 | run05 |
+|---|---|---|
+| blackout | −1 | **0** |
+| level gained | +0.5 | **+2** |
+| new species seen | — | **+1** |
+| new move known (distinct, ever) | — | **+2** |
+| new place healed at (respawn point changes) | — | **+1** |
+
+**Observation change:** the agent's **global Hoenn position** (sin/cos at 6
+frequencies per axis, from `map_data.json`; 92 numbers in total).
+
+**Targets to check:** battles won rather than fled (`emerald_rl/analyze.py`);
+Mudkip reaches level 16 and **evolves**; moves learned; Rustboro.

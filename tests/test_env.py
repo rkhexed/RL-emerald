@@ -98,7 +98,7 @@ def test_counters():
         print("  skipped: needs runs/run03")
         return
     rows, state = load_episode("runs/run03", 12, 29)
-    env = EmeraldEnv(init_state=state, max_steps=10**6)
+    env = EmeraldEnv(init_state=state, max_steps=10**6, weights={"blackout": 1.0})
     env.reset()
     for row in rows:
         env.step(int(row["action"]))

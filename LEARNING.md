@@ -1021,3 +1021,8 @@ the log is 7 bytes per step, and steps per second.
   milestones) in 10M steps. Analysis found the issues above; run04 starts
   fresh from Mudkip in the lab with all the fixes, 24 games on the resized
   24-vCPU VM.
+- **2026-10-07 (run04 → run05):** run04 stopped at 29M steps: its blackout
+  penalty taught the agent to run from 100% of battles early on (Mudkip stuck
+  at level 5), and it never got past Petalburg Woods. run05 drops the penalty,
+  quadruples the level reward, adds puffer's seen/moves/heal rewards and
+  Hamburg's global-position input. See PROGRESS.md.

@@ -13,7 +13,7 @@ swarm states, videos).
 | run01 | Oct 5 11:30 PM – Oct 6 12:41 AM | 2M | 16 | baseline, Red-style rewards | Route 103 (best games) |
 | run02 | Oct 6 2:14 AM – 8:05 AM | 10M | 16 | weaker stuck penalty, stronger options penalty | beat May (1 game) |
 | run03 | Oct 6 12:17 PM – 6:10 PM | 10M | 16 | milestones + swarming (Hamburg approach) | **inside Rustboro Gym** (15/16 milestones) |
-| run04 | Oct 7 12:49 AM – (ETA 11:40 AM) | 30M | 24 | fixes from run03's analysis, evolve/catch rewards | in progress |
+| run04 | Oct 7 12:49 AM – 1:24 PM (stopped) | 29M | 24 | fixes from run03's analysis, evolve/catch rewards, blackout penalty | beat the Aqua grunt (12/16); **ran from battles** |
 
 Every run starts from `states/01_mudkip.state` (Birch's lab, Mudkip Lv 5),
 with 7 buttons (↑ ↓ ← → A B START), one decision every 24 frames, and
@@ -138,7 +138,7 @@ episodes start from the furthest saved state (25% from a random earlier one).
 
 ---
 
-## run04: fixes from run03's analysis (in progress)
+## run04: fixes from run03's analysis
 
 **Policy and training**
 - Observation: as run03, plus **the last 4 buttons pressed**, **steps since
@@ -165,5 +165,43 @@ evolutions, all in TensorBoard.
 **Targets to check:** idle share well below 76%; at least one evolution and
 one catch; no collapse in battles per episode; the Stone Badge.
 
-**Observations:** _to be filled in._
-**Results:** _to be filled in._
+**Observations**
+- Stopped early at 28.95M steps (1:24 PM): it had been stuck after the Aqua
+  grunt for 6 hours. Speed was ~640 steps/s with 24 games (PPO's updates take
+  longer with more games).
+- What worked: idle share 76% → **~40–47%**; battle time 2.3% → **~20%**;
+  episodes ending with broken settings ~94% → **~10%**; **first catches**
+  (party up to 3, from ~18M steps).
+- **The blackout penalty taught the agent to run from battles.** Replay
+  analysis (`emerald_rl/analyze.py`, battle outcomes read from
+  `gBattleOutcome`):
+
+  | phase | battles/game | outcomes | lead level | blackouts |
+  |---|---|---|---|---|
+  | episode 15 (~7M) | 18.5 | **ran 100%** | **5 in all 8 games** | 0 |
+  | episode 35 (~17M) | 28.9 | won 58%, ran 35%, lost 6%, caught 1% | 7–15 | 1.6 |
+  | episode 56 (~28M) | 43.8 | **ran 63%**, won 33%, lost 4% | 9–14 | 1.6 |
+
+  Running is the better deal even without the penalty: a battle costs dozens
+  of steps and pays only a slow level reward, while walking pays exploration.
+  With Mudkip at level 5, beating May took 5.4 hours (run03: ~2.4 h).
+- **Too weak for the road north.** Mudkip ended around level 13 (run03 had
+  16–17 here). Most blackouts happen in Petalburg Woods, respawning in
+  Petalburg, back in the south. No Mudkip reached level 16, so **no evolutions**.
+- **Going the wrong way.** After the grunt, 90% of Route 104 time was in the
+  south half (unexplored beach tiles still pay); the closest any game came to
+  Rustboro was y = 23 on Route 104, 7 tiles past the woods' north exit.
+
+**Results** (28.95M steps, 12.6 h)
+
+| milestone | first reached |
+|---|---|
+| Oldale, Route 103, Oldale Pokémon Center | 1:18–1:23 AM |
+| beat May | 6:43 AM (5.4 h stuck at Route 103) |
+| Pokédex → Route 102 → Petalburg → Dad → Route 104 → Woods | 6:46–7:11 AM |
+| beat the Aqua grunt | 7:24 AM |
+| Rustboro | not reached |
+
+**Proposed for run05:** keep every run04 fix except the blackout penalty;
+**remove the blackout penalty**, and make winning worth more than running
+(a bigger level reward, so experience pays for the steps a battle costs).

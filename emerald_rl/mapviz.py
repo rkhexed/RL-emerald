@@ -260,6 +260,7 @@ def main():
     p.add_argument("--episode", type=int, help="only this episode (walkers default: 0)")
     p.add_argument("--envs", type=lambda v: [int(x) for x in v.split(",")], help="only these envs, e.g. 0 or 0,3")
     p.add_argument("--inter", type=int, default=2, help="walkers: frames per step (smooth movement between tiles)")
+    p.add_argument("--scale", type=int, default=2, help="walkers: pixel upscale (use 1 for long routes)")
     a = p.parse_args()
     if a.what == "world":
         CACHE.mkdir(exist_ok=True)
@@ -268,7 +269,7 @@ def main():
     elif a.what == "heatmap":
         heatmap(a.run, a.last, a.envs, a.episode)
     else:
-        walkers(a.run, a.episode or 0, a.start, a.steps, a.inter, envs=a.envs)
+        walkers(a.run, a.episode or 0, a.start, a.steps, a.inter, a.scale, envs=a.envs)
 
 
 if __name__ == "__main__":

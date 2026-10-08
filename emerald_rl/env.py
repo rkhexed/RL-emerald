@@ -83,7 +83,7 @@ WORLD = _MAP_DATA["world_tiles"]
 DEFAULT_WEIGHTS = {
     "event": 1.0,  # per story/trainer/system flag set (most ever, minus flags set at start)
     "explore": 0.02,  # per unique (map bank, map num, x, y) tile visited this episode
-    "level": 2.0,  # per party level gained (full value to +15, then 1/4); puffer: removing it always failed
+    "level": 0.5,  # per party level gained (full to +15, then 1/4); 2.0 (run05) caused grinding, 0 fails (puffer)
     "badge": 5.0,
     "town": 2.0,  # per "visited town" flag, on top of its event flag
     "milestone": 5.0,  # per milestone reached for the first time this episode

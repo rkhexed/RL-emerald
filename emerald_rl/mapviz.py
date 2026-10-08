@@ -11,6 +11,7 @@ map on one global Hoenn grid (indoor maps at the door that leads into them).
 """
 
 import argparse
+from collections import deque
 import json
 import re
 from functools import lru_cache
@@ -70,19 +71,14 @@ def _layout(layout_id):
     return layouts[layout_id]
 
 
-@lru_cache(None)
-def map_image(map_name):
-    """RGB image of one map, 16 px per tile, as the game draws it (minus sprites and animation)."""
-    m = json.loads((DECOMP / "data/maps" / map_name / "map.json").read_text())
-    lay = _layout(m["layout"])
+def _draw(blocks, lay):
+    """RGB image of a grid of metatile ids, 16 px per tile, drawn with the layout's two tilesets."""
     p_tiles, p_pals, p_meta = _tileset(lay["primary_tileset"])
     s_tiles, s_pals, s_meta = _tileset(lay["secondary_tileset"])
     tiles = np.concatenate([p_tiles[:512], s_tiles])  # VRAM: primary tiles 0-511, secondary from 512
     pals = np.concatenate([p_pals[:6], s_pals[6:13]])  # palettes 0-5 primary, 6-12 secondary
     metas = np.concatenate([p_meta[:512], s_meta])  # metatiles 0-511 primary, then secondary
-    blocks = np.fromfile(DECOMP / lay["blockdata_filepath"], "<u2").reshape(lay["height"], lay["width"]) & 0x3FF
-
-    img = np.zeros((lay["height"] * T, lay["width"] * T, 3), np.uint8)
+    img = np.zeros((blocks.shape[0] * T, blocks.shape[1] * T, 3), np.uint8)
     for (r, c), block in np.ndenumerate(blocks):
         for layer in (0, 1):
             for q in range(4):
@@ -98,16 +94,70 @@ def map_image(map_name):
     return img
 
 
-def world(region=None, visited=None):
-    """The stitched overworld, optionally cropped to (x0, y0, x1, y1) in tiles. Maps placed beside their
-    door (Petalburg Woods, caves) are drawn only if in `visited` (a set of (bank, num)), when given."""
+def _map_layout(map_name):
+    return _layout(json.loads((DECOMP / "data/maps" / map_name / "map.json").read_text())["layout"])
+
+
+@lru_cache(None)
+def map_image(map_name):
+    """RGB image of one map, 16 px per tile, as the game draws it (minus sprites and animation)."""
+    lay = _map_layout(map_name)
+    blocks = np.fromfile(DECOMP / lay["blockdata_filepath"], "<u2").reshape(lay["height"], lay["width"]) & 0x3FF
+    return _draw(blocks, lay)
+
+
+@lru_cache(None)
+def border_image(map_name):
+    """The 2x2-metatile pattern the game draws past this map's edges (trees, water...), 32x32 px."""
+    lay = _map_layout(map_name)
+    return _draw(np.fromfile(DECOMP / lay["border_filepath"], "<u2").reshape(2, 2) & 0x3FF, lay)
+
+
+@lru_cache(None)
+def _town_map():
+    """Emerald's Town Map: per-pixel sea mask (512x512) and each Town Map section's pixel rect by id."""
+    D = DECOMP / "graphics/pokenav/region_map"
+    im = Image.open(D / "map.png")
+    sheet = np.array(im)
+    tiles = sheet.reshape(sheet.shape[0] // 8, 8, sheet.shape[1] // 8, 8).transpose(0, 2, 1, 3).reshape(-1, 8, 8)
+    grid = np.fromfile(D / "map.bin", np.uint8).reshape(64, 64)
+    px = np.array(im.getpalette(), np.uint8).reshape(-1, 3)[tiles[grid].transpose(0, 2, 1, 3).reshape(512, 512)]
+    sea = (px[..., 2] > px[..., 1]) & (px[..., 2] > px[..., 0])  # blue: open sea and water routes
+    secs = json.loads((DECOMP / "src/data/region_map/region_map_sections.json").read_text())["map_sections"]
+    # Town Map cell (x, y) sits at pixel ((x + 1) * 8, (y + 2) * 8)
+    return sea, {s["id"]: ((s["x"] + 1) * 8, (s["y"] + 2) * 8, s["width"] * 8, s["height"] * 8) for s in secs if "x" in s}
+
+
+def town_map_sea(m, gx, gy):
+    """True where Emerald's Town Map shows sea at world tiles (gx, gy), lined up locally: map `m`'s
+    rectangle is stretched onto its own Town Map section and the tiles around it follow. None if `m`
+    has no section on the Town Map."""
+    sea, rects = _town_map()
+    rect = rects.get(json.loads((DECOMP / f"data/maps/{m['name']}/map.json").read_text())["region_map_section"])
+    if rect is None:
+        return None
+    (mx, my), (u0, v0, uw, vh) = m["coordinates"], rect
+    u = (u0 + (gx - mx) / m["width"] * uw).astype(int)
+    v = (v0 + (gy - my) / m["height"] * vh).astype(int)
+    inside = (u >= 0) & (u < 512) & (v >= 0) & (v < 512)
+    return ~inside | sea[np.clip(v, 0, 511), np.clip(u, 0, 511)]
+
+
+def world(region=None, visited=None, borders=False):
+    """The stitched overworld, optionally cropped to (x0, y0, x1, y1) in tiles (may extend past the
+    world). Maps placed beside their door (Petalburg Woods, caves) are drawn only if in `visited`
+    (a set of (bank, num)), when given. borders=True fills gaps instead of leaving them black: sea
+    or forest as Emerald's Town Map shows there, with trees on the nearest map's grid."""
     W, H = MAPS["world_tiles"]
     x0, y0, x1, y1 = region or (0, 0, W, H)
     img = np.zeros(((y1 - y0) * T, (x1 - x0) * T, 3), np.uint8)
+    owner = np.full((y1 - y0, x1 - x0), -1)  # per tile: index into `drawn` of the map drawn there
+    drawn = []
     for m in MAPS["maps"]:
         if "coordinates" not in m or (m.get("beside_door") and visited is not None and (m["bank"], m["num"]) not in visited):
             continue
         mx, my = m["coordinates"]
+        drawn.append(m)
         if mx >= x1 or my >= y1 or mx + m["width"] <= x0 or my + m["height"] <= y0:
             continue
         tile = map_image(m["name"])
@@ -116,6 +166,49 @@ def world(region=None, visited=None):
         sx1, sy1 = min(x1 - mx, m["width"]), min(y1 - my, m["height"])
         img[(my + sy0 - y0) * T:(my + sy1 - y0) * T, (mx + sx0 - x0) * T:(mx + sx1 - x0) * T] = \
             tile[sy0 * T:sy1 * T, sx0 * T:sx1 * T]
+        owner[my + sy0 - y0:my + sy1 - y0, mx + sx0 - x0:mx + sx1 - x0] = len(drawn) - 1
+    if borders:  # gaps: sea or forest as the Town Map shows there, trees lined up with the nearest map
+        h, w = owner.shape
+        src = np.full((h, w, 2), -1)  # nearest drawn tile (row, col) for every tile, by breadth-first search
+        q = deque()
+        for r, c in zip(*np.nonzero(owner >= 0)):
+            src[r, c] = (r, c)
+            q.append((r, c))
+        while q:
+            r, c = q.popleft()
+            for rr, cc in ((r + 1, c), (r - 1, c), (r, c + 1), (r, c - 1)):
+                if 0 <= rr < h and 0 <= cc < w and src[rr, cc, 0] < 0:
+                    src[rr, cc] = src[r, c]
+                    q.append((rr, cc))
+        gap = (owner < 0) & (src[..., 0] >= 0)
+        near = np.where(gap, owner[src[..., 0], src[..., 1]], -1)  # nearest map for every gap tile
+        wet = np.zeros((h, w), bool)
+        for i in np.unique(near[near >= 0]):
+            rows, cols = np.nonzero(near == i)
+            sea_here = town_map_sea(drawn[i], x0 + cols + 0.5, y0 + rows + 0.5)  # land or sea as the Town Map draws it
+            if sea_here is not None:
+                wet[rows, cols] = sea_here
+        seen = np.zeros((h, w), bool)  # drop sea specks (< 64 tiles): Town Map pixels that land just inland
+        for r0, c0 in zip(*np.nonzero(wet)):
+            if seen[r0, c0]:
+                continue
+            blob, q = [(r0, c0)], deque([(r0, c0)])
+            seen[r0, c0] = True
+            while q:
+                r, c = q.popleft()
+                for rr, cc in ((r + 1, c), (r - 1, c), (r, c + 1), (r, c - 1)):
+                    if 0 <= rr < h and 0 <= cc < w and wet[rr, cc] and not seen[rr, cc]:
+                        seen[rr, cc] = True
+                        blob.append((rr, cc))
+                        q.append((rr, cc))
+            if len(blob) < 64:
+                wet[tuple(np.array(blob).T)] = False
+        sea, forest = border_image("Route105"), border_image("Route101")
+        for r, c in zip(*np.nonzero(gap)):
+            m = drawn[near[r, c]]
+            ux, uy = (x0 + c - m["coordinates"][0]) % 2, (y0 + r - m["coordinates"][1]) % 2  # that map's tree grid
+            pattern = sea if wet[r, c] else forest
+            img[r * T:(r + 1) * T, c * T:(c + 1) * T] = pattern[uy * T:(uy + 1) * T, ux * T:(ux + 1) * T]
     return img
 
 

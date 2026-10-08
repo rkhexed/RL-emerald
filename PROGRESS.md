@@ -276,3 +276,15 @@ open session).
 Mudkip mostly Lv 6–7 (best 12–14); blackouts ~2 per game while levelling on
 Route 101. May not beaten yet (run03 beat her at ~4.1M). Still open: idle
 share ~53% and settings broken in ~85% of episodes.
+
+**Reward hack found (Oct 8, 4 PM, run06c at ~41M steps).** The moves reward
+was being farmed. Mean distinct moves known rose from ~3 early in run06 to
+**25.8**, the moves term reached **~41 per episode** (exploration ~7), and
+the worst game spent **96%** of its steps locked in menus. A replay (env 3,
+latest episode) showed all 33 extra "moves" appearing on the party menu: the
+agents switch Pokémon around, the env sometimes reads a half-copied slot, and
+the junk decodes to move IDs like 48573 (real ones stop at 354). Fixed in
+`env.py` (commit `3676252`): only Pokémon whose checksum matches are read;
+the same replay now counts 6 moves, not 39. The live run keeps the old code.
+This also revises the earlier diagnosis: the ~71% of time locked in menus
+was mostly this exploit, not weak leads.

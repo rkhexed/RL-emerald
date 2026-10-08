@@ -515,6 +515,23 @@ against Zubats' Leech Life, healing and getting hurt over and over. The ablation
 also found that removing the *level* reward slightly increased milestones
 reached, and removing navigation reward meant reaching none at all.
 
+**Case study 3: shuffling the party (ours, run05–run06).** run05 added
+pokemonred_puffer's "+2 per distinct move the party has ever known". By
+run06c the average game "knew" 26 moves, the moves term paid ~41 per episode
+(exploration ~7, a milestone 5), and some games spent 95% of their steps in
+menus. Replaying one episode showed every new "move" appearing on the same
+screen, `CB2_UpdatePartyMenu`: the agent was opening the party menu and
+**switching Pokémon around**. The game copies a Pokémon to its new slot over
+several frames, and `run_frame()` can stop mid-copy (the same timing as the
+save-block bug in section 14). Decrypting a half-copied slot gives junk:
+species #39475, "moves" #48573 and #26409, when real moves stop at 354.
+Because our scores are "best so far", one junk frame paid for the whole
+episode. No rule was wrong in principle; the **measurement** was.
+The fix: every Pokémon carries a checksum (byte 28, the sum of its decrypted
+data; a mismatch is what the game turns into a "Bad Egg"). The env now trusts
+a Pokémon only when its checksum matches. Replaying the same episode: 39
+"moves" before, 6 real ones after.
+
 **Design rules for our Emerald reward:**
 
 1. Every term is monotone: "max so far" or "count of distinct things".
@@ -527,6 +544,13 @@ reached, and removing navigation reward meant reaching none at all.
 5. Drop raw healing. If it's needed, pay only for "healed at a Pokémon Center
    after being low".
 6. Log every term separately, so a spike in one is visible on the dashboard.
+7. Validate every value decoded from RAM before paying for it (checksums,
+   valid ranges). "Could a human player earn this?" is the test: nobody can
+   learn move #48573.
+
+> **Video note.** Case study 3 is our own: the replay of the party menu
+> flickering, the moves term climbing alone on the dashboard, the junk move
+> numbers, and the checksum fix.
 
 > **Video note.** Mr. Briney deserves its own segment: replay footage, the
 > reward graph climbing with no progress, the three lines of code that cause it,
@@ -1026,3 +1050,8 @@ the log is 7 bytes per step, and steps per second.
   at level 5), and it never got past Petalburg Woods. run05 drops the penalty,
   quadruples the level reward, adds puffer's seen/moves/heal rewards and
   Hamburg's global-position input. See PROGRESS.md.
+- **2026-10-08 (run06, reward hack found):** the moves reward was being farmed
+  by switching Pokémon in the party menu, which produced junk reads of
+  half-copied slots (section 8, case study 3). Fixed with the Pokémon
+  checksum; this also blocks fake evolutions and catches from the same junk.
+  The menu time we had blamed on weak leads was mostly this exploit.

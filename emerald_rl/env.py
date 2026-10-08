@@ -209,9 +209,13 @@ class EmeraldEnv(gym.Env):
         levels = party[:, 84].astype(int)
         words = party.copy().view("<u4")  # (n, 25) little-endian words
         pid, otid = words[:, 0], words[:, 1]
-        species = [int((words[i, 8 + 3 * GROWTH_POS[pid[i] % 24]] ^ pid[i] ^ otid[i]) & 0xFFFF) for i in range(n)]
+        # trust a Pokemon only if its checksum (byte 28: sum of the decrypted halfwords) matches; while the game
+        # reorders the party a slot is half copied, and run06 farmed the junk "moves" that decoded from it
+        sub = (words[:, 8:20] ^ (pid ^ otid)[:, None]).view("<u2")
+        good = [i for i in range(n) if int(sub[i].sum()) & 0xFFFF == words[i, 7] & 0xFFFF]
+        species = {i: int((words[i, 8 + 3 * GROWTH_POS[pid[i] % 24]] ^ pid[i] ^ otid[i]) & 0xFFFF) for i in good}
         moves = set()
-        for i in range(n):
+        for i in good:
             a = words[i, 8 + 3 * ATTACKS_POS[pid[i] % 24]: 8 + 3 * ATTACKS_POS[pid[i] % 24] + 2] ^ (pid[i] ^ otid[i])
             moves |= {int(a[0] & 0xFFFF), int(a[0] >> 16), int(a[1] & 0xFFFF), int(a[1] >> 16)} - {0}
         hp = party[:, 86:88].copy().view(np.uint16)[:, 0].astype(int)
@@ -226,7 +230,7 @@ class EmeraldEnv(gym.Env):
             "badges": [flag(i) for i in BADGE_FLAGS],
             "towns": sum(flag(i) for i in TOWN_FLAGS),
             "levels": levels, "hp": hp, "max_hp": max_hp,
-            "party": dict(zip(pid.tolist(), species)),  # personality -> species
+            "party": {int(pid[i]): sp for i, sp in species.items()},  # personality -> species
             "moves": moves,
             "heal": (int(ew[sb1 + SB1_LAST_HEAL]), int(ew[sb1 + SB1_LAST_HEAL + 1])),
             "seen": int(np.unpackbits(ew[sb2 + SB2_DEX_SEEN:sb2 + SB2_DEX_SEEN + 52]).sum()),

@@ -16,6 +16,8 @@ swarm states, videos).
 | run04 | Oct 7 12:49 AM – 1:24 PM (stopped) | 29M | 24 | fixes from run03's analysis, evolve/catch rewards, blackout penalty | beat the Aqua grunt (12/16); **ran from battles** |
 | run05 | Oct 7 2:26 PM – 6:50 PM | 10M | 24 | fight instead of flee: no blackout penalty, level ×4, seen/moves/heal rewards, global position input | Route 103; **grinding loop**, May never beaten |
 
+| run06 | Oct 7 8:33 PM – (continues as the big run, +30M) | 8M + 30M | 24 | run05 with level reward back to 0.5 | in progress |
+
 Every run starts from `states/01_mudkip.state` (Birch's lab, Mudkip Lv 5),
 with 7 buttons (↑ ↓ ← → A B START), one decision every 24 frames, and
 20,480-step episodes.
@@ -259,3 +261,18 @@ from the level reward being too small.
 
 **Proposed for run06:** everything from run05, with the level reward back at
 **0.5** (run03's proven value).
+
+---
+
+## run06: run05 with the level reward back at 0.5 (the big run)
+
+Everything from run05, with the level reward at **0.5** (run03's value). An
+8M-step diagnostic that then **continues from its own checkpoint and swarm
+states for 30M more steps** (chained in tmux, so it doesn't depend on an
+open session).
+
+**4M-step check (10:18 PM):** battle behaviour fixed. Won 76%, ran 17%, lost
+7%, ~27 battles per game (run04: ran 63–100%; run05: 150 battles, grinding).
+Mudkip mostly Lv 6–7 (best 12–14); blackouts ~2 per game while levelling on
+Route 101. May not beaten yet (run03 beat her at ~4.1M). Still open: idle
+share ~53% and settings broken in ~85% of episodes.

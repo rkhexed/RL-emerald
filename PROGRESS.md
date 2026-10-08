@@ -14,7 +14,7 @@ swarm states, videos).
 | run02 | Oct 6 2:14 AM – 8:05 AM | 10M | 16 | weaker stuck penalty, stronger options penalty | beat May (1 game) |
 | run03 | Oct 6 12:17 PM – 6:10 PM | 10M | 16 | milestones + swarming (Hamburg approach) | **inside Rustboro Gym** (15/16 milestones) |
 | run04 | Oct 7 12:49 AM – 1:24 PM (stopped) | 29M | 24 | fixes from run03's analysis, evolve/catch rewards, blackout penalty | beat the Aqua grunt (12/16); **ran from battles** |
-| run05 | Oct 7 (10M diagnostic) | 10M | 24 | fight instead of flee: no blackout penalty, level ×4, seen/moves/heal rewards, global position input | in progress |
+| run05 | Oct 7 2:26 PM – 6:50 PM | 10M | 24 | fight instead of flee: no blackout penalty, level ×4, seen/moves/heal rewards, global position input | Route 103; **grinding loop**, May never beaten |
 
 Every run starts from `states/01_mudkip.state` (Birch's lab, Mudkip Lv 5),
 with 7 buttons (↑ ↓ ← → A B START), one decision every 24 frames, and
@@ -209,7 +209,7 @@ one catch; no collapse in battles per episode; the Stone Badge.
 
 ---
 
-## run05: fight instead of flee (in progress)
+## run05: fight instead of flee
 
 A 10M-step diagnostic run, from Mudkip in the lab, 24 games. Everything from
 run04 stays except the blackout penalty.
@@ -237,3 +237,25 @@ frequencies per axis, from `map_data.json`; 92 numbers in total).
 
 **Targets to check:** battles won rather than fled (`emerald_rl/analyze.py`);
 Mudkip reaches level 16 and **evolves**; moves learned; Rustboro.
+
+**Observations**
+- **Overcorrected into a grinding loop.** Battle share 20% → **60%** of
+  steps, ~150 battles per episode (86% won), Mudkip Lv 15–17, but **5–7
+  blackouts per episode**, nearly all on Route 101. The agents fight wild
+  Pokémon until Mudkip faints; with no blackout penalty, fainting is a free
+  heal, and they go back to grinding.
+- The level reward became the largest term (~+20 per episode vs ~+10
+  exploration), so going to fight May was never worth it.
+- Good signs: **first evolution** (~5.4M steps), ~5 moves known, idle share
+  down to ~23%.
+
+**Results** (10M steps, 4.4 h): only Oldale, its Pokémon Center and Route
+103; **May never beaten**.
+
+**Lesson across run03–run05:** run03 (level 0.5, no penalty) fought when
+needed and reached Rustboro; run04 (level 0.5, blackout −1) fled; run05
+(level 2.0, no penalty) grinds. run04's fleeing came from the penalty, not
+from the level reward being too small.
+
+**Proposed for run06:** everything from run05, with the level reward back at
+**0.5** (run03's proven value).

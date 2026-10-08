@@ -169,7 +169,8 @@ class EmeraldEnv(gym.Env):
             self.log = open(Path(log_dir) / f"env{env_id:03d}.bin", "ab")
             self.episodes = open(Path(log_dir) / f"env{env_id:03d}.episodes.csv", "a")
         self.rows = []
-        self.total_steps = 0
+        # on --resume the log keeps growing, so episode offsets continue from its current length
+        self.total_steps = self.log.tell() // self.LOG_DTYPE.itemsize if self.log else 0
         # our game settings, from the original start state (swarm states may have them changed)
         self.core.load_raw_state(ffi.from_buffer(bytearray(self.init_state.read_bytes())))
         self.core.run_frame()

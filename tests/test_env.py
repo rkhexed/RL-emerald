@@ -1,4 +1,4 @@
-"""Checks for emerald_rl/env.py. Needs Emerald.gba and states/01_mudkip.state (see SETUP.md).
+"""Checks for emerald_rl/env.py. Needs Emerald.gba and states/01_mudkip.state (see README.md, Running it).
 
 Run: python tests/test_env.py
 """

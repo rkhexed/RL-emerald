@@ -182,7 +182,7 @@ Checked after the research run against shallow clones in `~/refs/` and by runnin
 
 ### mGBA build and speed on our VM
 
-- The `mgba` pip wheel is still broken: it needs `libmgba.so.0.10`. Building mGBA **0.10.5** with `-DBUILD_PYTHON=ON` works, but the Python bindings also need **`-DUSE_FFMPEG=ON`**. Without FFmpeg, `EReaderScanLoadImageA` is never compiled, and `import mgba` fails with an undefined symbol. Full steps are in `SETUP.md`.
+- The `mgba` pip wheel is still broken: it needs `libmgba.so.0.10`. Building mGBA **0.10.5** with `-DBUILD_PYTHON=ON` works, but the Python bindings also need **`-DUSE_FFMPEG=ON`**. Without FFmpeg, `EReaderScanLoadImageA` is never compiled, and `import mgba` fails with an undefined symbol. Full steps are in the README.
 - `scripts/bench_emulator.py`, run on MIT-licensed test ROMs (jsmolka/gba-tests), not Emerald:
 
   | processes | raw fps per process | decisions/s per process (24 frames each) | decisions/s total |

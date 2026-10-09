@@ -354,7 +354,7 @@ to an LSTM once the pipeline works.
 
 **The hardware we're emulating:** a 16.78 MHz ARM7TDMI CPU, a 240×160 screen,
 about 59.73 frames per second. **mGBA** emulates it in C. We drive it from
-Python through its official bindings (built from source, see `SETUP.md`), and
+Python through its official bindings (built from source, see "Running it" in the README), and
 **pygba** wraps that in the Gymnasium `reset()` / `step()` interface.
 
 **A step**, in our version and Red's:

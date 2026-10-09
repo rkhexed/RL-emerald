@@ -87,9 +87,50 @@ powers the analysis tools and every video.
 
 ## Running it
 
-You need your own legally obtained Pokémon Emerald ROM; it is never included or
-distributed here. Setup (mGBA with Python bindings, the decomp's map data, the
-start savestates) is in [SETUP.md](SETUP.md).
+You need your own legally obtained Pokémon Emerald ROM, saved as `Emerald.gba` in
+the repo root; it is never included or distributed here. Tested on Ubuntu 22.04
+with Python 3.10, CPU only.
+
+**1. mGBA 0.10.5 with Python bindings.** The `mgba` pip wheel is broken, so build
+it from source:
+
+```bash
+sudo apt-get install -y build-essential cmake pkg-config libzip-dev zipcmp zipmerge ziptool \
+  libpng-dev zlib1g-dev libsqlite3-dev libelf-dev libedit-dev python3-dev libffi-dev \
+  libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev libavfilter-dev
+python3 -m venv .venv && source .venv/bin/activate
+pip install cffi setuptools wheel pytest-runner cached_property
+git clone https://github.com/mgba-emu/mgba ~/refs/mgba && git -C ~/refs/mgba checkout 0.10.5
+cmake -S ~/refs/mgba -B ~/refs/mgba/build -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release \
+  -DBUILD_PYTHON=ON -DUSE_FFMPEG=ON -DBUILD_QT=OFF -DBUILD_SDL=OFF -DUSE_LUA=OFF \
+  -DUSE_DISCORD_RPC=OFF -DPYTHON_EXECUTABLE=$PWD/.venv/bin/python
+cmake --build ~/refs/mgba/build -j && sudo cmake --install ~/refs/mgba/build && sudo ldconfig
+cp -r ~/refs/mgba/build/python/lib.linux-*/mgba .venv/lib/python3.10/site-packages/
+```
+
+Without `-DUSE_FFMPEG=ON`, `import mgba` fails on the undefined symbol
+`EReaderScanLoadImageA`; without `zipcmp`/`zipmerge`/`ziptool`, CMake can't
+configure libzip.
+
+**2. Python packages and the decompilation** (map data and graphics for the visuals):
+
+```bash
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+pip install stable-baselines3 gymnasium tensorboard imageio imageio-ffmpeg pillow matplotlib
+pip install --no-deps git+https://github.com/dvruette/pygba && pip install -e .
+git clone --depth 1 https://github.com/pret/pokeemerald ~/refs/pokeemerald
+```
+
+**3. Start savestates**, rebuilt from power-on by scripted button presses (the
+intro, naming the player, choosing Mudkip):
+
+```bash
+python scripts/drive.py --keys @scripts/intro.keys --save states/00_truck.state
+python scripts/drive.py --load states/00_truck.state --keys @scripts/starter.keys --save states/01_mudkip.state
+python tests/test_env.py
+```
+
+**4. Train and look at the results:**
 
 ```bash
 python -m emerald_rl.train --name myrun --envs 24 --steps 10000000

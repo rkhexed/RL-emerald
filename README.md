@@ -1,186 +1,121 @@
 # RL-Emerald
 
-Reinforcement learning agents that play **Pokémon Emerald**, not an important feature but maybe with a side comparison with LLM based agents or a hybrid llm - jev agent setup.
+Reinforcement learning agents that learn to play **Pokémon Emerald** from scratch:
+PPO, no human demonstrations, no scripted gameplay. It's a re-creation of
+[PokemonRedExperiments](https://github.com/PWhiddy/PokemonRedExperiments) on the GBA,
+with the environment, reward design, map tooling and analysis built from the ground up.
 
-## 1. The goal
+![24 agents exploring Hoenn, from Littleroot to Rustboro](docs/images/swarm.jpg)
 
-Train an agent to progress through Pokémon Emerald, then compare three families
-on equal terms:
+*Real agent paths from run06, drawn on a map of Hoenn stitched together from the
+[pokeemerald](https://github.com/pret/pokeemerald) decompilation.*
 
-1. **Pure RL** — PPO over emulator frames, in the style of PokemonRedExperiments.
-OPtional: MAIN FOCUS IS PURE RL with maybe some deterministic rules added on top
-2. **LLM-guided** — a frontier model driving the game through a tool harness.
-3. **Hybrid** — an LLM proposing subgoals, RL executing them.
+## Where it stands
 
-The honest framing: this comparison has already been run (see §2), so the
-contribution has to be something else. The open angles are in §6.
+Agents start in Professor Birch's lab with a level-5 Mudkip and learn, from reward
+alone, to leave Littleroot, beat the rival, get the Pokédex, meet Dad in Petalburg,
+cross Petalburg Woods, beat the Team Aqua grunt and reach **Rustboro City and its
+gym**: 15 of the 16 milestones up to the first badge.
 
----
+| run | steps | key change | furthest point |
+|---|---|---|---|
+| run01 | 2M | baseline, Red-style rewards | Route 103 |
+| run02 | 10M | rebalanced penalties | beat the rival (1 game) |
+| run03 | 10M | milestones + swarm restarts | inside Rustboro Gym |
+| run04 | 29M | blackout penalty | beat the Aqua grunt; agents learned to **flee every battle** |
+| run05 | 10M | level reward ×4, moves/seen/heal rewards | Route 103; agents learned to **grind forever** |
+| run06 | 48M | level reward back down | inside Rustboro Gym; found a **reward exploit** (below) |
 
-## 2. What already exists — read this before building anything
+Every run is documented in [PROGRESS.md](PROGRESS.md): the reward weights, what
+the agents did, and what changed next.
 
-| Work | What it did | Status |
-|---|---|---|
-| **PokemonRedExperiments** (Whiddy) | PPO on Pokémon **Red** via PyBoy; the viral 2023 video | 7.9k stars, MIT, active |
-| **Pokémon Red via RL** (Pleines et al., arXiv 2502.19920) | Formal write-up; PPO baseline reaching Cerulean City; reward-hacking ablations | published |
-| **PokeRL** (arXiv 2604.10812, Apr 2026) | Red early game, anti-loop wrappers, dense rewards | preprint |
-| **PokéAgent Challenge** (NeurIPS 2025) | **An entire Emerald speedrunning track.** 100+ teams, 22 valid submissions, 6 reached 100% | public infra + leaderboard |
-| **Continual Harness** (arXiv 2605.09998, May 2026) | Self-improving LLM harness on Red *and* Emerald | code public |
-| pygba, PkmnRLArena, Emeraude_IA_RL | Emerald RL environments (mGBA wrappers) | small, 0–22 stars |
+## Things that went wrong, and what they taught
 
-### The competition results that matter
+Most of this project has been working out what the agents are *actually* optimising.
 
-| Team | Approach | Result |
-|---|---|---|
-| Heatz (1st) | LLM writes tool-using policy code, distilled into a neural policy (DAgger) | **40:13** |
-| Hamburg PokéRunners (2nd) | **Pure RL** — recurrent PPO, milestone-conditioned rewards | ~80 min |
-| Anthonys (3rd) | Pure LLM harness | 1:29:17 |
-| Frontier VLMs, no harness | — | **~0% completion** |
-| Human expert speedrunner | — | 18 min |
+- **A penalty made them cowards.** A −1 for blacking out (run04) taught agents to
+  run from 100% of battles. Mudkip stayed at level 5 and the run stalled.
+- **A bigger level reward made them grinders.** Quadrupling it (run05) produced
+  ~150 battles per episode and no story progress past Route 103.
+- **They found a bug in how we read the game.** run06 rewarded "distinct moves
+  known". The agents learned to reorder their party in the menu: mid-swap, a
+  Pokémon's encrypted data is half-copied, and decoding it yields nonsense move IDs
+  (#48573, when real ones stop at 354). Average "moves known" climbed to 35 while
+  agents sat in menus 90% of the time. The fix was to validate each Pokémon's
+  built-in checksum before trusting it ([LEARNING.md §8](LEARNING.md)).
 
-So: hybrid beats either alone, and raw vision-language models are useless without
-scaffolding. Re-running that comparison would be reproduction, not contribution.
+## How it works
 
-**Cost of LLM play:** Continual Harness reports **$130 per complete Emerald run**
-with Gemini 3 Pro ($215 for their minimal-harness baseline). Weaker models fail
-outright — Flash-Lite stalls below 20%.
+**Environment** ([`emerald_rl/env.py`](emerald_rl/env.py)), a Gymnasium env around
+[mGBA](https://mgba.io)'s Python bindings:
+- **Observation:** a half-resolution greyscale screen (3 stacked frames plus a mask
+  of visited tiles), and 92 game-state numbers. These cover party HP and levels,
+  milestones reached, recent buttons, and position on the world map, encoded as
+  sin/cos at several frequencies.
+- **Actions:** 7 buttons (↑ ↓ ← → A B START), one decision every 24 frames.
+- **Game state comes straight from RAM**, using addresses from the decompilation.
+  This includes decrypting party data (XOR key plus 24 substructure orders) and
+  coping with Emerald's "DMA protection", which moves save data around every map
+  load.
+- **Rewards are "best so far" scores:** story flags, new tiles, levels, milestones,
+  evolutions, Pokémon Centers visited. Each is logged separately, so a single term
+  running away (an exploit) shows up in the training curves.
 
----
+**Training** ([`emerald_rl/train.py`](emerald_rl/train.py)): Stable-Baselines3 PPO
+over 24 parallel games. A small CNN reads the screen and an MLP reads the stats.
+The emulator, not the network, is the bottleneck: about 600 decisions per second
+on a 24-vCPU VM, with no GPU.
 
-## 3. Compute, with real numbers
+**Swarm restarts** (after the Hamburg PokéRunners' approach in the
+[PokéAgent Challenge](https://pokeagentchallenge.com)): when any game reaches a new
+milestone, its save state is shared, and new episodes start from the furthest
+point reached. One agent's breakthrough becomes everyone's starting line.
 
-From Pleines et al., measured on an AMD Ryzen 7 2700X:
+**Deterministic replays:** every step is logged in 7 bytes (map, x, y, button).
+Because the emulator is deterministic (the cartridge clock is pinned), any episode
+from any run can be replayed exactly, at full quality, long after training. That
+powers the analysis tools and every video.
 
-* Pokémon **Red** runs at **9,403 frames/sec per core**, but one decision takes
-  24 frames (8 held, 16 released), so **~392 decisions/sec per core**.
-* Their runs: 32 workers, **400M steps, ~36 hours per run**.
-* The recurrent (GRU) variant did not fit in VRAM, so it ran on CPU: **24 days
-  per run**.
-* Evaluating a trained agent costs about as much wall time as training it.
+## Tools
 
-**Emerald is GBA, which is heavier.** Headless mGBA is reported at 1,000–3,400 fps
-(unverified by us), so roughly **40–140 decisions/sec per core** — 3–10× slower
-than Red.
-
-Extrapolated (estimates, not measurements):
-
-| vCPUs | One 400M-step run | Cost at ~$2/hr |
-|---|---|---|
-| 16 | ~4–14 days | $200–650 |
-| 32 | ~2–7 days | $100–350 |
-| 48 | ~1.5–5 days | $70–250 |
-
-**No GPU.** The network is a small CNN over downsampled frames; the bottleneck is
-emulation, which is CPU-only. A GPU would sit idle and bill.
-
-**Scope reduction worth considering:** the competition scores progress to the
-first gym (Roxanne), which plausibly needs ~100M steps rather than 400M — about a
-quarter of the above.
-
----
-
-## 4. VM specification
-
-| Field | Value |
+| | |
 |---|---|
-| Machine family | General purpose |
-| Series | **C4** (or **N2** if C4 capacity is short) |
-| Machine type | **`c4-highcpu-16`** to start (16 vCPU, 32 GB) |
-| GPU | **none** |
-| Boot disk | 100 GB balanced persistent disk |
-| Image | Ubuntu 22.04 LTS |
-| Region | us-central1 |
-| Provisioning | Standard (not Spot) for runs you need to finish |
-| Rough cost | ~$0.6–0.7/hr running; pennies when stopped |
+| [`emerald_rl/mapviz.py`](emerald_rl/mapviz.py) | Hoenn rendered from the decomp's tilesets; visit heatmaps; videos of agents walking the map |
+| [`emerald_rl/replay.py`](emerald_rl/replay.py) | exact replays of any episode, single or as a grid of all games |
+| [`emerald_rl/analyze.py`](emerald_rl/analyze.py) | replays episodes and reports what happened from game memory: battle outcomes, blackouts, time in menus |
+| [`tests/test_env.py`](tests/test_env.py) | RAM decoding against an independent decoder, determinism, milestones, swarm restarts |
 
-### The quota catch — read this first
+## Running it
 
-The approved quota is **64 CPUs globally** and **48 per C4 family in
-us-central1**. The drone-navigation VM already uses **48**, leaving **16**.
+You need your own legally obtained Pokémon Emerald ROM; it is never included or
+distributed here. Setup (mGBA with Python bindings, the decomp's map data, the
+start savestates) is in [SETUP.md](SETUP.md).
 
-So, three options:
+```bash
+python -m emerald_rl.train --name myrun --envs 24 --steps 10000000
+python -m emerald_rl.mapviz heatmap runs/myrun
+python -m emerald_rl.replay runs/myrun --envs 0-23 --episode 10
+python -m emerald_rl.analyze runs/myrun --episodes 10 --envs 0-23
+```
 
-1. **Start at 16 vCPU now** (recommended): enough to install everything, measure
-   the real emulator speed, and train the scoped-down first-gym target.
-2. **Raise the global CPU quota** to ~112 if both projects need to run at once.
-3. **Wait and reuse the drone VM** once its runs finish — same hardware, no new
-   quota.
+## Further reading
 
-### Why many cores rather than a big GPU
+- [LEARNING.md](LEARNING.md): a from-scratch guide to everything here, covering
+  PPO and GAE, the network, reading GBA memory, reward design and reward hacking,
+  and how the visuals are made.
+- [PROGRESS.md](PROGRESS.md): the run-by-run lab notebook.
+- [docs/research](docs/research/2026-10-02-deep-research.md): the survey of
+  prior Pokémon RL and LLM-agent work this builds on.
 
-Each emulator instance is a single-threaded process using a few hundred MB. More
-cores means more parallel games. 16 vCPUs supports roughly 16–32 instances; RAM is
-not the constraint (32 GB is ample).
+## Next
 
----
+run07 carries the checksum fix, more milestones beyond Rustboro, and a recurrent
+(LSTM) policy. The target is the first badge: beating Roxanne.
 
-## 5. ROM legality
+## Credits
 
-Every Emerald environment requires a `rom.gba` that **you supply**. You need to
-own the cartridge, and the ROM must never be committed to a repository or copied
-to a shared bucket. Keep it on the VM disk only, and leave it out of any
-screenshots or published artefacts.
-
----
-
-## 6. Where the novelty could be
-
-These survive the prior work:
-
-1. **A compute-matched cost comparison.** Everyone reports wall-clock or dollars
-   for LLM agents and environment steps for RL, but nobody puts them on one axis:
-   *dollars and FLOPs to each milestone*, for RL vs LLM vs hybrid. No new
-   algorithm needed, and it is exactly what a small lab can do well.
-2. **Distil the harness into something free to run.** The winner went LLM →
-   scripted → RL. Nobody has pushed it to "a small recurrent policy that
-   completes Emerald with zero API calls at inference". That is a deployment-cost
-   result with a hard number attached.
-3. **LLM-written reward functions vs hand-written milestone rewards**
-   (Eureka-style). Pleines et al. found agents exploiting shaped rewards; testing
-   whether LLM-authored rewards hack *more or less* extends that directly.
-4. **Cross-game transfer**: train on Red (cheap), transfer to Emerald
-   (expensive). No RL transfer between the two has been published.
-5. **Fix a documented limitation**: recurrent policies choked at 2048-step
-   horizons. A state-space model or hierarchical options agent addresses a
-   problem the authors named in print.
-
-Best pair for a small project: **2 + 1** — distil a hybrid agent into an API-free
-policy, and report the compute-matched Pareto curve. Neither requires beating the
-leaderboard.
-
----
-
-## 7. First steps, in order
-
-1. Create the VM (§4) and install **pygba** (mGBA with Python bindings) plus a
-   Gymnasium wrapper.
-2. **Measure the real steps-per-second.** This replaces the single biggest guess
-   in §3 and determines every later estimate.
-3. Reproduce a short RL run on the scoped target (first gym) to validate the
-   pipeline.
-4. Run one LLM harness pass for the comparison baseline, budgeting ~$130 of API
-   credit.
-5. Only then pick a novelty angle from §6 and commit to it.
-
----
-
-## 8. References
-
-* Pokémon Red via RL — https://arxiv.org/abs/2502.19920
-* PokemonRedExperiments — https://github.com/PWhiddy/PokemonRedExperiments
-* PokeRL — https://arxiv.org/abs/2604.10812
-* PokéAgent Challenge — https://arxiv.org/abs/2603.15563 · https://pokeagentchallenge.com
-* Winning speedrun solution — https://github.com/heatz123/pokeagent-solution
-* Continual Harness — https://arxiv.org/abs/2605.09998 · https://github.com/sethkarten/continual-harness
-* pygba (mGBA + Gymnasium) — https://github.com/dvruette/pygba
-* Emerald RL experiments — https://github.com/dvruette/pokemon-emerald-experiments
-* PkmnRLArena (PettingZoo, GBA) — https://github.com/wissammm/PkmnRLArena
-
----
-
-## 9. Not verified yet
-
-* The 1,000–3,400 fps headless mGBA figure — ours to measure in step 2.
-* Whether the competition's Emerald environment can be reused directly, or
-  whether a custom wrapper is needed.
-* Whether a scoped first-gym target really needs ~100M steps rather than 400M.
+[PokemonRedExperiments](https://github.com/PWhiddy/PokemonRedExperiments) (Peter
+Whidden), [pokemonred_puffer](https://github.com/thatguy11325/pokemonred_puffer),
+the Hamburg PokéRunners, [pret/pokeemerald](https://github.com/pret/pokeemerald),
+[mGBA](https://mgba.io), [pygba](https://github.com/dvruette/pygba) and
+[Stable-Baselines3](https://github.com/DLR-RM/stable-baselines3).
